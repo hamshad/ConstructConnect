@@ -68,6 +68,7 @@ while (true) {
           project_count,
           project_value,
           phone,
+          email,
           role_group,
           role_type,
           is_watched,
@@ -81,7 +82,8 @@ while (true) {
           ${company.industryValue},
           ${company.projectCount},
           ${company.projectValue},
-          ${company.phone},
+          ${company.phone ?? null},
+          ${company.email ?? null},
           ${company.roleGroup},
           ${company.roleType},
           ${company.isWatched},
@@ -90,23 +92,13 @@ while (true) {
           ${JSON.stringify(company.location)},
           ${JSON.stringify(company.address)}
         )
-        ON CONFLICT (company_id) 
-        DO UPDATE SET
-          name = EXCLUDED.name,
-          industry_value = EXCLUDED.industry_value,
-          project_count = EXCLUDED.project_count,
-          project_value = EXCLUDED.project_value,
-          phone = EXCLUDED.phone,
-          role_group = EXCLUDED.role_group,
-          role_type = EXCLUDED.role_type,
-          is_watched = EXCLUDED.is_watched,
-          is_viewed = EXCLUDED.is_viewed,
-          last_viewed_date = EXCLUDED.last_viewed_date,
-          location = EXCLUDED.location,
-          address = EXCLUDED.address
+        ON CONFLICT (company_id) DO NOTHING
       `;
     }
+    console.log("\n");
     console.log("Companies added/updated successfully!");
+    console.log("\n");
+    console.log("\n");
   }
 
   if (choice === 2) {
