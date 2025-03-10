@@ -170,7 +170,7 @@ export async function addAllCompanyLeadsToPostgresqlFromFile(filePath: string = 
 }
 export async function getAllCompanyLeads(existingRecords?: number): Promise<void> {
   const limit: number = 150;
-  let offset: number = existingRecords ?? 0;
+  let offset: number = Number(existingRecords) ?? 0;
   let totalRecords: number = Infinity;
   const outputFilePath: string = join(process.cwd(), 'data', 'companyLeads.json');
 
@@ -185,8 +185,9 @@ export async function getAllCompanyLeads(existingRecords?: number): Promise<void
     await addAllCompanyLeadsToPostgresqlFromApi(response);
 
     totalRecords = response.numFound;
-    console.log(`Total records: ${totalRecords}`);
     offset += limit;
+    console.log(`Total records: ${totalRecords}`);
+    console.log(`Offset: ${offset}`);
   }
 
   console.log('All company leads fetched successfully');
