@@ -1,111 +1,70 @@
-import postgres from "postgres";
-import companyLeads from "./data/companyLeads";
 import projectLeads from "./data/projectLeads";
+import { addAllCompanyLeadsToPostgresqlFromFile, getAllCompanyLeads } from "./src/companyLeads/company";
+import { SQL } from './SQL'
 
 
-// const db = new SQL({
-//   url: "postgres://root:1234@localhost:5432/constructconnect",
+// [MENU 1]
+console.log("1. Company Leads");
+console.log("2. Add all projects to the database");
+console.log("4. show all projects");
+console.log("0. Exit");
+console.log("\n")
 
-//   hostname: "localhost",
-//   port: 5432,
-//   database: "constructconnect",
-//   username: "postgres",
-//   password: "1234",
+const choice = Number(prompt("Enter your choice: "));
+console.log("\n")
+console.log("\n")
 
-//   tls: true,
 
-//   onconnect: async (client) => {
-//     console.log("Connected to database")
-//   },
-
-//   onclose: async (client) => {
-//     console.log("Connection closed")
-//   }
-// });
-
-const sql = postgres({
-  host: "localhost",
-  port: 5432,
-  database: "constructconnect",
-  username: "postgres",
-  password: "1234",
-  onnotice: notice => console.log(notice),
-  onclose: () => console.log("\nConnection closed"),
-})
-
-const [{ version }] = await sql`SELECT version()`;
-console.log(version);
-console.log("\n");
-
-const result = await sql`SELECT * FROM companies`;
-console.log("[RESULT]", JSON.stringify(result, null, 2));
-
-while (true) {
+// [MENU 2]
+if (choice === 1) {
+  console.log("1. Call all company leads from API");
+  console.log("2. Add all company leads to the database");
+  console.log("3. Total number of companies in the database");
+  console.log("4. Show all companies in the database");
   console.log("0. Exit");
-  console.log("1. Add all companies to the database");
-  console.log("2. Add all projects to the database");
-  console.log("3. show all companies");
-  console.log("4. show all projects");
-  console.log("\n")
 
-  const choice = Number(prompt("Enter your choice: "));
+  const subChoice = Number(prompt("Enter your choice: "));
   console.log("\n")
   console.log("\n")
 
-  if (choice === 0) {
-    break;
+  if (subChoice === 1) {
+    const length = await SQL.sql`SELECT COUNT(*) FROM companies`;
+
+    getAllCompanyLeads(length[0].count)
+      .then(() => {
+        console.log("Companies added/updated successfully!");
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
 
-  if (choice === 1) {
-    for (const company of companyLeads) {
-      console.log(company)
+  if (subChoice === 2) {
+    addAllCompanyLeadsToPostgresqlFromFile();
+  }
 
-      await sql`
-        INSERT INTO companies (
-          company_id,
-          name,
-          industry_value,
-          project_count,
-          project_value,
-          phone,
-          email,
-          role_group,
-          role_type,
-          is_watched,
-          is_viewed,
-          last_viewed_date,
-          location,
-          address
-        ) VALUES (
-          ${company.companyId},
-          ${company.name},
-          ${company.industryValue},
-          ${company.projectCount},
-          ${company.projectValue},
-          ${company.phone ?? null},
-          ${company.email ?? null},
-          ${company.roleGroup},
-          ${company.roleType},
-          ${company.isWatched},
-          ${company.isViewed},
-          ${company.lastViewedDate},
-          ${JSON.stringify(company.location)},
-          ${JSON.stringify(company.address)}
-        )
-        ON CONFLICT (company_id) DO NOTHING
-      `;
+  if (subChoice === 3) {
+
+    const length = await SQL.sql`SELECT COUNT(*) FROM companies`;
+    if (length[0].count === 0) {
+      console.log("No companies found in the database!");
+    } else {
+      console.log("Total number of companies in the database: ", length[0].count);
     }
-    console.log("\n");
-    console.log("Companies added/updated successfully!");
-    console.log("\n");
-    console.log("\n");
   }
 
-  if (choice === 2) {
-    for (const project of projectLeads) {
-      console.log(project);
+  if (subChoice === 4) {
+    const companies = await SQL.sql`SELECT * FROM companies`;
+    console.log("All Companies:");
+    console.table(companies);
+  }
+}
 
-      await sql`
+
+if (choice === 2) {
+  for (const project of projectLeads) {
+    console.log(project);
+    await SQL.sql`
         INSERT INTO projects (
           project_id,
           title,
@@ -258,21 +217,22 @@ while (true) {
           document_acquisition_status = EXCLUDED.document_acquisition_status,
           document_acquisition_status_id = EXCLUDED.document_acquisition_status_id
       `;
-    }
-    console.log("Projects added/updated successfully!");
   }
-
-  if (choice === 3) {
-    const companies = await sql`SELECT * FROM companies`;
-    console.log("All Companies:");
-    console.table(companies);
-  }
-
-  if (choice === 4) {
-    const projects = await sql`SELECT * FROM projects`;
-    console.log("All Projects:");
-    console.table(projects);
-  }
+  console.log("Projects added/updated successfully!");
 }
 
-await sql.end();
+if (choice === 3) {
+  const companies = await SQL.sql`SELECT * FROM companies`;
+  console.log("All Companies:");
+  console.table(companies);
+}
+
+if (choice === 4) {
+  const projects = await SQL.sql`SELECT * FROM projects`;
+  console.log("All Projects:");
+  console.table(projects);
+}
+
+if (choice === 0) {
+  SQL.closeSQL();
+}
