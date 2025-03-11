@@ -71,7 +71,7 @@ async function addAllCompanyLeadsToPostgresqlFromApi(data: ApiResponse): Promise
   for (const company of data.docs) {
     console.log(company)
 
-    new SQL().addCompanies(company);
+    SQL.addCompanies(company);
   }
 
   console.log("\n");
@@ -89,9 +89,8 @@ export async function addAllCompanyLeadsToPostgresqlFromFile(filePath: string = 
   const data = JSON.parse(fileContent);
 
   for (const company of data) {
-    console.log(company)
-
-    new SQL().addCompanies(company);
+    // console.log(company)
+    SQL.addCompanies(company);
 
   }
 
@@ -99,9 +98,6 @@ export async function addAllCompanyLeadsToPostgresqlFromFile(filePath: string = 
   console.log("Companies added/updated successfully!");
   console.log("\n");
   console.log("\n");
-
-  SQL.closeSQL();
-  process.exit();
 }
 export async function getAllCompanyLeads(existingRecords?: number): Promise<void> {
   const limit: number = 150;
@@ -110,20 +106,20 @@ export async function getAllCompanyLeads(existingRecords?: number): Promise<void
   const outputFilePath: string = join(process.cwd(), 'data', 'company_leads.json');
 
   while (offset < totalRecords) {
-    const expectedOffset: number = offset + limit;
-    console.log(`Fetching company leads from offset: ${offset} to ${expectedOffset}`);
+    console.log(`\n--------------------------------------------------------------------`);
+    console.log(`Fetching company leads from offset: ${offset} to ${offset + limit}`);
 
-    if (offset % 1500 === 0) {
-      console.log('Sleeping for 5 seconds');
-      await Bun.sleep(5000);
-    }
+    // if (offset % 1500 === 0) {
+    //   console.log('Sleeping for 5 seconds');
+    //   await Bun.sleep(5000);
+    // }
 
     const response = await fetchCompanyLeads(offset, limit);
 
     console.log(`Fetched ${response.numFound} company leads`);
 
     await appendToFile(outputFilePath, response.docs);
-    await addAllCompanyLeadsToPostgresqlFromApi(response);
+    // await addAllCompanyLeadsToPostgresqlFromApi(response);
 
     totalRecords = response.numFound;
     offset += limit;

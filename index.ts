@@ -24,13 +24,14 @@ console.log("\n")
 
 // [MENU 2]
 if (choice === 1) {
-  console.log("1. Call all company leads from API");
-  console.log("2. Add all company leads to the database");
-  console.log("3. Total number of companies in the database");
-  console.log("4. Show all companies in the database");
-  console.log("0. Exit");
+  console.log("  1. Call all company leads from API");
+  console.log("  2. Add all company leads to the database");
+  console.log("  3. Total number of companies in the database");
+  console.log("  4. Show all companies in the database");
+  console.log("  0. Exit");
+  console.log("\n")
 
-  const subChoice = Number(prompt("Enter your choice: "));
+  const subChoice = Number(prompt("  Enter your choice: "));
   console.log("\n")
   console.log("\n")
 
