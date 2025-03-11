@@ -71,7 +71,7 @@ async function addAllCompanyLeadsToPostgresqlFromApi(data: ApiResponse): Promise
   for (const company of data.docs) {
     console.log(company)
 
-    SQL.addCompanies(company);
+    await SQL.addCompanies(company);
   }
 
   console.log("\n");
@@ -90,7 +90,7 @@ export async function addAllCompanyLeadsToPostgresqlFromFile(filePath: string = 
 
   for (const company of data) {
     // console.log(company)
-    SQL.addCompanies(company);
+    await SQL.addCompanies(company);
 
   }
 

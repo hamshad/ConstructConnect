@@ -40,9 +40,10 @@ export class SQL {
   }
 
   static async addCompanies(company: typeof companyRawLeads[0]) {
-    console.log(company);
+    console.log('[COMPANY]:', company);
 
-    await SQL.sql`
+    try {
+      const insertResult = await SQL.sql`
         INSERT INTO companies (
           company_id,
           name,
@@ -74,8 +75,15 @@ export class SQL {
           ${JSON.stringify(company.location)},
           ${JSON.stringify(company.address)}
         )
+        ON CONFLICT (company_id) DO NOTHING
       `;
-    // ON CONFLICT (company_id) DO NOTHING
+
+      console.log('INSERT RESULT', insertResult);
+
+    } catch (error) {
+      console.error(error);
+      throw new Error(`Error adding company: ${error}`);
+    }
   }
 
   static async closeSQL() {
