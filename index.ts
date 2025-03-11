@@ -2,6 +2,12 @@ import projectLeads from "./data/projectLeads";
 import { addAllCompanyLeadsToPostgresqlFromFile, getAllCompanyLeads } from "./src/companyLeads/company";
 import { SQL } from './SQL'
 import { join } from 'path';
+import { exit } from "process";
+
+const stop = () => {
+  SQL.closeSQL();
+  exit(0);
+}
 
 
 // [MENU 1]
@@ -41,7 +47,8 @@ if (choice === 1) {
   }
 
   if (subChoice === 2) {
-    addAllCompanyLeadsToPostgresqlFromFile();
+    await addAllCompanyLeadsToPostgresqlFromFile();
+    stop();
   }
 
   if (subChoice === 3) {
@@ -53,16 +60,19 @@ if (choice === 1) {
       console.log("Total number of companies in the database: ", length[0].count);
     }
 
-    const filePath = join(process.cwd(), 'data', 'companyLeads.json');
+    const filePath = join(process.cwd(), 'data', 'company_leads.json');
     const fileContent = await Bun.file(filePath).text();
     console.log("Data file path: ", JSON.parse(fileContent).length);
+    stop();
   }
 
   if (subChoice === 4) {
     const companies = await SQL.sql`SELECT * FROM companies`;
     console.log("All Companies:");
     console.table(companies);
+    stop();
   }
+
 }
 
 

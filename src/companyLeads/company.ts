@@ -71,40 +71,7 @@ async function addAllCompanyLeadsToPostgresqlFromApi(data: ApiResponse): Promise
   for (const company of data.docs) {
     console.log(company)
 
-    await SQL.sql`
-        INSERT INTO companies (
-          company_id,
-          name,
-          industry_value,
-          project_count,
-          project_value,
-          phone,
-          email,
-          role_group,
-          role_type,
-          is_watched,
-          is_viewed,
-          last_viewed_date,
-          location,
-          address
-        ) VALUES (
-          ${company.companyId},
-          ${company.name},
-          ${company.industryValue},
-          ${company.projectCount},
-          ${company.projectValue},
-          ${company.phone ?? null},
-          ${company.email ?? null},
-          ${company.roleGroup},
-          ${company.roleType},
-          ${company.isWatched},
-          ${company.isViewed},
-          ${company.lastViewedDate},
-          ${JSON.stringify(company.location)},
-          ${JSON.stringify(company.address)}
-        )
-        ON CONFLICT (company_id) DO NOTHING
-      `;
+    new SQL().addCompanies(company);
   }
 
   console.log("\n");
@@ -113,7 +80,7 @@ async function addAllCompanyLeadsToPostgresqlFromApi(data: ApiResponse): Promise
   console.log("\n");
 }
 
-export async function addAllCompanyLeadsToPostgresqlFromFile(filePath: string = join(process.cwd(), 'data', 'companyLeads.json')): Promise<void> {
+export async function addAllCompanyLeadsToPostgresqlFromFile(filePath: string = join(process.cwd(), 'data', 'company_leads.json')): Promise<void> {
   if (!await Bun.file(filePath).exists()) {
     throw new Error(`${filePath} does not exist`);
   }
@@ -124,40 +91,8 @@ export async function addAllCompanyLeadsToPostgresqlFromFile(filePath: string = 
   for (const company of data) {
     console.log(company)
 
-    await SQL.sql`
-        INSERT INTO companies (
-          company_id,
-          name,
-          industry_value,
-          project_count,
-          project_value,
-          phone,
-          email,
-          role_group,
-          role_type,
-          is_watched,
-          is_viewed,
-          last_viewed_date,
-          location,
-          address
-        ) VALUES (
-          ${company.companyId},
-          ${company.name},
-          ${company.industryValue ?? null},
-          ${company.projectCount ?? null},
-          ${company.projectValue ?? null},
-          ${company.phone ?? null},
-          ${company.email ?? null},
-          ${company.roleGroup ?? null},
-          ${company.roleType ?? null},
-          ${company.isWatched ?? null},
-          ${company.isViewed ?? null},
-          ${company.lastViewedDate ?? null},
-          ${JSON.stringify(company.location)},
-          ${JSON.stringify(company.address)}
-        )
-        ON CONFLICT (company_id) DO NOTHING
-      `;
+    new SQL().addCompanies(company);
+
   }
 
   console.log("\n");
@@ -172,11 +107,17 @@ export async function getAllCompanyLeads(existingRecords?: number): Promise<void
   const limit: number = 150;
   let offset: number = Number(existingRecords) ?? 0;
   let totalRecords: number = Infinity;
-  const outputFilePath: string = join(process.cwd(), 'data', 'companyLeads.json');
+  const outputFilePath: string = join(process.cwd(), 'data', 'company_leads.json');
 
   while (offset < totalRecords) {
     const expectedOffset: number = offset + limit;
     console.log(`Fetching company leads from offset: ${offset} to ${expectedOffset}`);
+
+    if (offset % 1500 === 0) {
+      console.log('Sleeping for 5 seconds');
+      await Bun.sleep(5000);
+    }
+
     const response = await fetchCompanyLeads(offset, limit);
 
     console.log(`Fetched ${response.numFound} company leads`);
