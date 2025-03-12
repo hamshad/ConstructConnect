@@ -75,7 +75,7 @@ export class SQL {
           ${JSON.stringify(company.location)},
           ${JSON.stringify(company.address)}
         )
-        ON CONFLICT (company_id) DO NOTHING
+        ON CONFLICT (id) DO NOTHING
       `;
 
       console.log('INSERT RESULT', insertResult);
