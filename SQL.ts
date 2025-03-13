@@ -72,8 +72,8 @@ export class SQL {
           ${company.isWatched ?? null},
           ${company.isViewed ?? null},
           ${company.lastViewedDate ?? null},
-          ${JSON.stringify(company.location)},
-          ${JSON.stringify(company.address)}
+          ${company.location},
+          ${company.address}
         )
         ON CONFLICT (id) DO NOTHING
       `;
