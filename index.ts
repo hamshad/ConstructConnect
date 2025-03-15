@@ -11,6 +11,7 @@ const stop = () => {
 
 
 // [MENU 1]
+console.log("\n")
 console.log("1. Company Leads");
 console.log("2. Add all projects to the database");
 console.log("4. show all projects");

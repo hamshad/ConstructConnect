@@ -18,3 +18,6 @@ WHERE company_id IN (
 
 -- [Search from the jsonb]
 select * from companies where address->>'city' = 'Santa Monica';
+
+-- [Search the jsonb from the jsonb]
+select address->>'zipcode' from companies where address->>'state' = 'California' and address->>'zipcode' = '95742';

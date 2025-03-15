@@ -1,6 +1,9 @@
 {
   "name": "constructconnect",
   "module": "index.ts",
+  "scripts": {
+    "start": "bun run ./index.js"
+  },
   "type": "module",
   "devDependencies": {
     "@types/bun": "^1.2.4"
