@@ -1,6 +1,8 @@
 import { join } from 'path';
 import type companyRawLeads from '../../data/companyRawLeads';
 import { SQL } from '../../SQL';
+import { CompanySql } from './CompanySql';
+import { appendToFile } from '../../data/FileOperations';
 
 type CompanyLead = typeof companyRawLeads[0];
 
@@ -50,28 +52,11 @@ async function fetchCompanyLeads(offset: number, limit: number = 150): Promise<A
   return response.json();
 }
 
-async function appendToFile(filePath: string, data: CompanyLead[]): Promise<void> {
-  try {
-    let existingData: CompanyLead[] = [];
-    if (await Bun.file(filePath).exists()) {
-      const fileContent = await Bun.file(filePath).text();
-      existingData = JSON.parse(fileContent);
-    }
-
-    const updateData = existingData.concat(data);
-
-    await Bun.write(filePath, JSON.stringify(updateData, null, 2));
-    console.log(`Appended ${data.length} records to ${filePath}`);
-  } catch (error) {
-    console.error(error);
-  }
-}
-
 async function addAllCompanyLeadsToPostgresqlFromApi(data: ApiResponse): Promise<void> {
   for (const company of data.docs) {
     console.log(company)
 
-    await SQL.addCompanies(company);
+    await new CompanySql().addCompanies(company);
   }
 
   console.log("\n");
@@ -90,7 +75,7 @@ export async function addAllCompanyLeadsToPostgresqlFromFile(filePath: string = 
 
   for (const company of data) {
     // console.log(company)
-    await SQL.addCompanies(company);
+    await new CompanySql().addCompanies(company);
 
   }
 
@@ -118,7 +103,7 @@ export async function getAllCompanyLeads(existingRecords?: number): Promise<void
 
     console.log(`Fetched ${response.numFound} company leads`);
 
-    await appendToFile(outputFilePath, response.docs);
+    await appendToFile<CompanyLead[]>(outputFilePath, response.docs);
     // await addAllCompanyLeadsToPostgresqlFromApi(response);
 
     totalRecords = response.numFound;
