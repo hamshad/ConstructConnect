@@ -29,6 +29,7 @@ if (choice === 1) {
   console.log("  2. Add all company leads to the database");
   console.log("  3. Total number of companies in the database");
   console.log("  4. Show all companies in the database");
+  console.log("  5. Show Top 10 companies in the database");
   console.log("  0. Exit");
   console.log("\n")
 
@@ -72,6 +73,13 @@ if (choice === 1) {
     const companies = await SQL.sql`SELECT * FROM companies`;
     console.log("All Companies:");
     console.table(companies);
+    stop();
+  }
+
+  if (subChoice === 5) {
+    const companies = await SQL.sql`SELECT * FROM companies LIMIT 10`;
+    console.log("Top 10 Companies:", JSON.stringify(companies, null, 2));
+    // console.table(companies);
     stop();
   }
 
