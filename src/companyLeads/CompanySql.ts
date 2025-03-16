@@ -4,7 +4,7 @@ import { Transactional } from '../utils/Transactions';
 
 export class CompanySql {
 
-  // @Transactional()
+  @Transactional()
   async getAllCompanies(limit?: number) {
     console.log('start transaction');
     try {
@@ -21,6 +21,7 @@ export class CompanySql {
     }
   }
 
+  @Transactional()
   async addCompanies(company: typeof companyRawLeads[0]) {
     console.log('[COMPANY]:', company);
 
@@ -70,6 +71,7 @@ export class CompanySql {
     }
   }
 
+  @Transactional()
   async addSingleCompany(companyId: string, company: SingleCompanyType) {
     console.log('[SINGLE COMPANY]:', company);
 
