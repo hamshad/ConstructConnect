@@ -12,6 +12,8 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@clack/prompts": "^0.10.0",
+    "picocolors": "^1.1.1",
     "postgres": "^3.4.5"
   }
 }

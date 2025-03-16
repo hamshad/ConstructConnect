@@ -2,6 +2,7 @@ import { join } from 'path';
 import type companyRawLeads from '../../data/companyRawLeads';
 import { CompanySql } from './CompanySql';
 import { appendToFile } from '../../data/FileOperations';
+import { spinner } from '@clack/prompts';
 
 type CompanyLead = typeof companyRawLeads[0];
 
@@ -69,20 +70,27 @@ async function addAllCompanyLeadsToPostgresqlFromApi(data: ApiResponse): Promise
 
 export async function addAllCompanyLeadsToPostgresqlFromFile(filePath: string = join(process.cwd(), 'data', 'company_leads.json')): Promise<void> {
   if (!await Bun.file(filePath).exists()) {
-    throw new Error(`${filePath} does not exist`);
+    console.log(`${filePath} does not exist`);
+    return;
   }
+
+  const s = spinner();
+  s.start('Adding companies to database...');
 
   const fileContent = await Bun.file(filePath).text();
   const data = JSON.parse(fileContent);
 
+  let i = 0;
   for (const company of data) {
     // console.log(company)
     await CompanyDB.addCompanies(company);
 
+    i++;
+    s.message(`Adding companies to database... ${i}/${data.length}`);
   }
 
   console.log("\n");
-  console.log("Companies added/updated successfully!");
+  s.stop('Companies added/updated successfully! Total companies added: ' + data.length);
   console.log("\n");
   console.log("\n");
 }
