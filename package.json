@@ -6,14 +6,15 @@
   },
   "type": "module",
   "devDependencies": {
-    "@types/bun": "^1.2.4"
+    "@types/bun": "^1.2.4",
+    "@types/pg": "^8.11.11"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "dependencies": {
     "@clack/prompts": "^0.10.0",
-    "picocolors": "^1.1.1",
-    "postgres": "^3.4.5"
+    "pg": "^8.14.0",
+    "picocolors": "^1.1.1"
   }
 }

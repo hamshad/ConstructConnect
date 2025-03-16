@@ -1,32 +1,45 @@
-import postgres from "postgres";
-import type companyRawLeads from "./data/companyRawLeads";
+import { Pool, type PoolClient } from "pg";
 
 export class SQL {
+  static pool = new Pool();
+  static client: PoolClient;
 
-  static sql = postgres({
-    host: "localhost",
-    port: 5432,
-    database: "constructconnect",
-    username: "postgres",
-    password: "1234",
-    onnotice: notice => console.log(notice),
-    onclose: () => console.log("\nConnection closed"),
-  });
+  static {
+    (async () => {
+      SQL.client = await SQL.pool.connect();
+    })();
+  }
 
   getSQL() {
-    if (!SQL.sql) {
+    if (!SQL.client) {
       throw new Error("SQL connection not established");
     }
-    return SQL.sql;
+    return SQL.client;
   }
 
   static async getVersion() {
-    const [{ version }] = await SQL.sql`SELECT version()`;
-    console.log(version);
-    console.log("\n");
+    try {
+      const res = await SQL.client.query("SELECT version();");
+      console.log(res.rows[0].version);
+      console.log("\n");
+    } catch (error) {
+      console.error("Error fetching version:", error);
+    }
+  }
+
+  static async startTransaction() {
+    await SQL.client.query("BEGIN;");
+
+    return async (commit: boolean = true) => {
+      await SQL.client.query(commit ? "COMMIT;" : "ROLLBACK;");
+    };
   }
 
   static async closeSQL() {
-    await SQL.sql.end();
+    if (SQL.client) {
+      SQL.client.release();
+    }
+    await SQL.pool.end();
+    console.log("\nConnection closed");
   }
 }

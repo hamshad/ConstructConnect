@@ -4,6 +4,7 @@ import { SQL } from './src/utils/SQL'
 import { join } from 'path';
 import { exit } from "process";
 import colors from 'picocolors';
+import { CompanySql } from './src/companyLeads/CompanySql';
 
 const stop = () => {
   SQL.closeSQL();
@@ -37,12 +38,13 @@ async function companyLeadsMenu() {
       case 'fetchApi': {
         const s = spinner();
         s.start('Counting companies in database');
-        const length = await SQL.sql`SELECT COUNT(*) FROM companies`;
+        const length = (await SQL.client.query(`SELECT COUNT(*) FROM companies`)).rows;
+
         s.stop('Found ' + length[0].count + ' companies');
 
         s.start('Fetching company leads from API');
         try {
-          await getAllCompanyLeads(length[0].count as number);
+          await getAllCompanyLeads(Number(length[0].count));
           s.stop('Companies added/updated successfully!');
         } catch (error) {
           s.stop(colors.red(`Error: ${error}`));
@@ -62,13 +64,13 @@ async function companyLeadsMenu() {
         const s = spinner();
         s.start('Counting companies');
 
-        const dbCount = await SQL.sql`SELECT COUNT(*) FROM companies`;
+        const res = await SQL.client.query(`SELECT COUNT(*) FROM companies`);
         s.stop('Database count retrieved');
 
-        if (dbCount[0].count === 0) {
+        if (res.rows[0].count === 0) {
           console.log(colors.yellow("No companies found in the database!"));
         } else {
-          console.log(colors.green(`Total number of companies in the database: ${dbCount[0].count}`));
+          console.log(colors.green(`Total number of companies in the database: ${res.rows[0].count}`));
         }
 
         try {
@@ -83,7 +85,7 @@ async function companyLeadsMenu() {
       case 'showAll': {
         const s = spinner();
         s.start('Loading all companies');
-        const companies = await SQL.sql`SELECT * FROM companies`;
+        const companies = await new CompanySql().getAllCompanies();
         s.stop(`Loaded ${companies.length} companies`);
 
         console.log(colors.green("All Companies:"));
@@ -93,7 +95,7 @@ async function companyLeadsMenu() {
       case 'showTop10': {
         const s = spinner();
         s.start('Loading top 10 companies');
-        const topCompanies = await SQL.sql`SELECT * FROM companies LIMIT 10`;
+        const topCompanies = await new CompanySql().getAllCompanies(10);
         s.stop(`Loaded ${topCompanies.length} companies`);
 
         console.log(colors.green("Top 10 Companies:"));
