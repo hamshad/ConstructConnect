@@ -5,6 +5,7 @@ import { join } from 'path';
 import { exit } from "process";
 import colors from 'picocolors';
 import { CompanySql } from './src/companyLeads/CompanySql';
+import { getAllSingleCompanyLeads } from './src/companyLeads/SingleCompany';
 
 const stop = () => {
   SQL.closeSQL();
@@ -21,6 +22,8 @@ async function companyLeadsMenu() {
       options: [
         { value: 'fetchApi', label: 'Call all company leads from API' },
         { value: 'addToDb', label: 'Add all company leads to the database' },
+        { value: 'fetchSingleApi', label: 'Call SINGLE company lead from API' },
+        { value: 'AddSingleToDB', label: 'Add all SINGLE company to the database' },
         { value: 'countCompanies', label: 'Total number of companies in the database' },
         { value: 'showAll', label: 'Show all companies in the database' },
         { value: 'showTop10', label: 'Show Top 10 companies in the database' },
@@ -58,6 +61,26 @@ async function companyLeadsMenu() {
         await addAllCompanyLeadsToPostgresqlFromFile();
         s.stop('Companies from file added to database');
         stop();
+        break;
+      }
+      case 'fetchSingleApi': {
+        const s = spinner();
+        s.start('Counting companies in database');
+        const length = (await SQL.client.query('select company_id from companies limit 1')).rows;
+
+        s.stop('Found ' + length[0].company_id + ' companies');
+
+        s.start('Fetching company leads from API');
+        try {
+          await getAllSingleCompanyLeads(Number(length[0].company_id));
+          s.stop('Companies added/updated successfully!');
+        } catch (error) {
+          s.stop(colors.red(`Error: ${error}`));
+        }
+        break;
+      }
+      case 'AddSingleToDB': {
+        await addAllCompanyLeadsToPostgresqlFromFile();
         break;
       }
       case 'countCompanies': {

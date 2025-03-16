@@ -13,6 +13,7 @@ export function Transactional() {
 
     // Wrap the original method with transaction logic
     descriptor.value = async function(...args: any[]) {
+
       // Ask the user if they want to start a transaction
       const start = await confirm({
         message: 'Do you want to start a transaction?',

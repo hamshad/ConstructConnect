@@ -175,4 +175,4 @@ dist
 .DS_Store
 
 
-data/company_leads.json
+data/*.json

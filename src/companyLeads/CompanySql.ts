@@ -1,3 +1,4 @@
+import { spinner } from '@clack/prompts';
 import type companyRawLeads from '../../data/companyRawLeads';
 import { SQL } from '../utils/SQL';
 import { Transactional } from '../utils/Transactions';
@@ -11,7 +12,7 @@ export class CompanySql {
       console.log('Getting all companies...');
       const result = await SQL.client.query(
         'SELECT * FROM companies LIMIT $1;',
-        [limit ?? 10]
+        [limit ?? 10000]
       );
       console.log('commit transaction');
       return result.rows;
@@ -75,6 +76,9 @@ export class CompanySql {
   async addSingleCompany(companyId: string, company: SingleCompanyType) {
     console.log('[SINGLE COMPANY]:', company);
 
+    const s = spinner();
+    s.start('Adding SINGLE company leads from file to database');
+
     try {
       const query = `
         UPDATE public.companies
@@ -100,25 +104,26 @@ export class CompanySql {
         company.companyInformation[0].Id,
         company.companyInformation[0].SourceCompanyId,
         company.companyInformation[0].CompanyName,
-        company.companyInformation[0].Website,
-        company.companyInformation[0].Phone,
-        company.companyInformation[0].Fax,
-        company.companyInformation[0].EmailAddress,
+        company.companyInformation[0].Website ?? null,
+        company.companyInformation[0].Phone ?? null,
+        company.companyInformation[0].Fax ?? null,
+        company.companyInformation[0].EmailAddress ?? null,
         company.companyInformation[0].Address,
         company.companyInformation[0].IsWatched,
         company.companyInformation[0].ProjectCount,
         company.companyInformation[0].LastUpdatedDate,
         company.associatedContacts,
         company.companyPortfolio,
-        company.companyNotes,
+        company.companyNotes.length === 0 ? company.companyNotes : null,
         companyId
       ];
 
       const insertResult = await SQL.client.query(query, values);
+      s.stop('Single Companies from file added to database');
       console.log('INSERT RESULT', insertResult);
     } catch (error) {
-      console.error(error);
-      throw new Error(`Error adding single company: ${error} `);
+      s.stop('Error adding single company' + error);
+      throw new Error(`Error adding single company: ${error}`);
     }
   }
 }
