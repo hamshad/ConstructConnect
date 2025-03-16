@@ -1,7 +1,6 @@
 import postgres from "postgres";
 import type companyRawLeads from "./data/companyRawLeads";
 
-
 export class SQL {
 
   static sql = postgres({

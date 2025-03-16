@@ -1,6 +1,5 @@
 import { join } from 'path';
 import type companyRawLeads from '../../data/companyRawLeads';
-import { SQL } from '../../SQL';
 import { CompanySql } from './CompanySql';
 import { appendToFile } from '../../data/FileOperations';
 
@@ -12,6 +11,9 @@ interface ApiResponse {
   docs: CompanyLead[];
   facets: any;
 }
+
+
+const CompanyDB = new CompanySql();
 
 async function fetchCompanyLeads(offset: number, limit: number = 150): Promise<ApiResponse> {
   let url;
@@ -56,7 +58,7 @@ async function addAllCompanyLeadsToPostgresqlFromApi(data: ApiResponse): Promise
   for (const company of data.docs) {
     console.log(company)
 
-    await new CompanySql().addCompanies(company);
+    await CompanyDB.addCompanies(company);
   }
 
   console.log("\n");
@@ -75,7 +77,7 @@ export async function addAllCompanyLeadsToPostgresqlFromFile(filePath: string = 
 
   for (const company of data) {
     // console.log(company)
-    await new CompanySql().addCompanies(company);
+    await CompanyDB.addCompanies(company);
 
   }
 

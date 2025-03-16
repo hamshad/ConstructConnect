@@ -39,15 +39,13 @@ async function fetchSingleCompanyLead(companyId: number): Promise<SingleCompanyL
   return response.json();
 }
 
-async function addSingleCompanyToListFromApi(data: SingleCompanyLeadType): Promise<void> {
-  for (const company of data) {
-    console.log(company)
+async function addSingleCompanyToListFromApi(company: SingleCompanyLeadType): Promise<void> {
+  console.log(company)
 
-    // TODO: Add company to database
-  }
+  // TODO: Add company to database
 
   console.log("\n");
-  console.log("Companies added/updated successfully!");
+  console.log(`Company ${company.companyInformation[0].SourceCompanyId} added/updated successfully!`);
   console.log("\n");
   console.log("\n");
 }
