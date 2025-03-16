@@ -1,5 +1,5 @@
 import type companyRawLeads from '../../data/companyRawLeads';
-import { SQL } from '../../SQL';
+import { SQL } from '../utils/SQL';
 
 export class CompanySql {
   sql = SQL.sql;
@@ -62,6 +62,38 @@ export class CompanySql {
     } catch (error) {
       console.error(error);
       throw new Error(`Error adding company: ${error}`);
+    }
+  }
+
+  async addSingleCompany(companyId: string, company: SingleCompanyType) {
+    console.log('[SINGLE COMPANY]:', company);
+
+    try {
+      const insertResult = await SQL.sql`
+        UPDATE public.companies
+        SET 
+            updated_id = ${company.companyInformation[0].Id},
+            source_company_id = ${company.companyInformation[0].SourceCompanyId},
+            name = ${company.companyInformation[0].CompanyName},
+            website = ${company.companyInformation[0].Website},
+            phone = ${company.companyInformation[0].Phone},
+            fax = ${company.companyInformation[0].Fax},
+            email = ${company.companyInformation[0].EmailAddress},
+            address = ${company.companyInformation[0].Address},
+            is_watched = ${company.companyInformation[0].IsWatched},
+            project_count = ${company.companyInformation[0].ProjectCount},
+            last_updated_date = ${company.companyInformation[0].LastUpdatedDate}::timestamp,
+            associated_contacts = ${company.associatedContacts},
+            company_portfolio = ${company.companyPortfolio},
+            company_notes = ${company.companyNotes}
+        WHERE company_id = ${companyId};
+    `;
+
+      console.log('INSERT RESULT', insertResult);
+
+    } catch (error) {
+      console.error(error);
+      throw new Error(`Error adding single company: ${error} `);
     }
   }
 }

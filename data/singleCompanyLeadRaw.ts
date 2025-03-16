@@ -2,98 +2,6 @@ export default [
   {
     "companyInformation": [
       {
-        "Id": 3082190,
-        "SourceCompanyId": 2226068,
-        "CompanyName": "NGL Tanzanite, LLC",
-        "LastUpdatedDate": "2021-11-02T13:10:19",
-        "Phone": "9095282288",
-        "Address": {
-          "Id": 0,
-          "AddressLine1": "477 Madison Ave.",
-          "AddressLine2": "6th Floor",
-          "City": "New York",
-          "State": "NY",
-          "ZipCode": "10022",
-          "IsVerified": false,
-          "CountryCode": "US",
-          "CountryID": 1,
-          "IsCommercial": false
-        },
-        "IsWatched": false,
-        "ProjectCount": 0
-      }
-    ],
-    "associatedContacts": [
-      {
-        "Id": 5772269,
-        "AccountId": 3082190,
-        "FirstName": "Peter",
-        "LastName": "Johnson",
-        "FullName": "Peter Johnson",
-        "OfficePhone": "9095282288",
-        "SourceContactId": 3444452,
-        "Status": 1
-      }
-    ],
-    "companyPortfolio": [
-      {
-        "Year": 2025,
-        "ProjectCount": 0,
-        "AverageProjectBudget": 0,
-        "BuildingUses": []
-      }
-    ],
-    "companyNotes": []
-  },
-  {
-    "companyInformation": [
-      {
-        "Id": 3082190,
-        "SourceCompanyId": 2226068,
-        "CompanyName": "NGL Tanzanite, LLC",
-        "LastUpdatedDate": "2021-11-02T13:10:19",
-        "Phone": "9095282288",
-        "Address": {
-          "Id": 0,
-          "AddressLine1": "477 Madison Ave.",
-          "AddressLine2": "6th Floor",
-          "City": "New York",
-          "State": "NY",
-          "ZipCode": "10022",
-          "IsVerified": false,
-          "CountryCode": "US",
-          "CountryID": 1,
-          "IsCommercial": false
-        },
-        "IsWatched": false,
-        "ProjectCount": 0
-      }
-    ],
-    "associatedContacts": [
-      {
-        "Id": 5772269,
-        "AccountId": 3082190,
-        "FirstName": "Peter",
-        "LastName": "Johnson",
-        "FullName": "Peter Johnson",
-        "OfficePhone": "9095282288",
-        "SourceContactId": 3444452,
-        "Status": 1
-      }
-    ],
-    "companyPortfolio": [
-      {
-        "Year": 2025,
-        "ProjectCount": 0,
-        "AverageProjectBudget": 0,
-        "BuildingUses": []
-      }
-    ],
-    "companyNotes": []
-  },
-  {
-    "companyInformation": [
-      {
         "Id": 2789595,
         "SourceCompanyId": 1964377,
         "CompanyName": "Bess Testlab Inc",
@@ -167,5 +75,97 @@ export default [
         "CommunicationType": 1
       }
     ]
-  }
+  },
+  {
+    "companyInformation": [
+      {
+        "Id": 3082190,
+        "SourceCompanyId": 2226068,
+        "CompanyName": "NGL Tanzanite, LLC",
+        "LastUpdatedDate": "2021-11-02T13:10:19",
+        "Phone": "9095282288",
+        "Address": {
+          "Id": 0,
+          "AddressLine1": "477 Madison Ave.",
+          "AddressLine2": "6th Floor",
+          "City": "New York",
+          "State": "NY",
+          "ZipCode": "10022",
+          "IsVerified": false,
+          "CountryCode": "US",
+          "CountryID": 1,
+          "IsCommercial": false
+        },
+        "IsWatched": false,
+        "ProjectCount": 0
+      }
+    ],
+    "associatedContacts": [
+      {
+        "Id": 5772269,
+        "AccountId": 3082190,
+        "FirstName": "Peter",
+        "LastName": "Johnson",
+        "FullName": "Peter Johnson",
+        "OfficePhone": "9095282288",
+        "SourceContactId": 3444452,
+        "Status": 1
+      }
+    ],
+    "companyPortfolio": [
+      {
+        "Year": 2025,
+        "ProjectCount": 0,
+        "AverageProjectBudget": 0,
+        "BuildingUses": []
+      }
+    ],
+    "companyNotes": []
+  },
+  {
+    "companyInformation": [
+      {
+        "Id": 3082190,
+        "SourceCompanyId": 2226068,
+        "CompanyName": "NGL Tanzanite, LLC",
+        "LastUpdatedDate": "2021-11-02T13:10:19",
+        "Phone": "9095282288",
+        "Address": {
+          "Id": 0,
+          "AddressLine1": "477 Madison Ave.",
+          "AddressLine2": "6th Floor",
+          "City": "New York",
+          "State": "NY",
+          "ZipCode": "10022",
+          "IsVerified": false,
+          "CountryCode": "US",
+          "CountryID": 1,
+          "IsCommercial": false
+        },
+        "IsWatched": false,
+        "ProjectCount": 0
+      }
+    ],
+    "associatedContacts": [
+      {
+        "Id": 5772269,
+        "AccountId": 3082190,
+        "FirstName": "Peter",
+        "LastName": "Johnson",
+        "FullName": "Peter Johnson",
+        "OfficePhone": "9095282288",
+        "SourceContactId": 3444452,
+        "Status": 1
+      }
+    ],
+    "companyPortfolio": [
+      {
+        "Year": 2025,
+        "ProjectCount": 0,
+        "AverageProjectBudget": 0,
+        "BuildingUses": []
+      }
+    ],
+    "companyNotes": []
+  },
 ]

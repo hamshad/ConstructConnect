@@ -1,15 +1,11 @@
 import { join } from 'path';
-import type singleCompanyRawLeads from '../../data/singleCompanyLeadRaw';
 import { CompanySql } from './CompanySql';
 import { appendToFile } from '../../data/FileOperations';
-
-
-type SingleCompanyLeadType = typeof singleCompanyRawLeads[0];
 
 const CompanyDB = new CompanySql();
 const SingleCompanyFile = join(process.cwd(), 'data', 'single_company_leads.json');
 
-async function fetchSingleCompanyLead(companyId: number): Promise<SingleCompanyLeadType> {
+async function fetchSingleCompanyLead(companyId: number): Promise<SingleCompanyType> {
   let url;
   try {
     url = new URL('https://api.io.constructconnect.com/cc/v1/companyInfo');
@@ -39,7 +35,7 @@ async function fetchSingleCompanyLead(companyId: number): Promise<SingleCompanyL
   return response.json();
 }
 
-async function addSingleCompanyToListFromApi(company: SingleCompanyLeadType): Promise<void> {
+async function addSingleCompanyToListFromApi(company: SingleCompanyType): Promise<void> {
   console.log(company)
 
   // TODO: Add company to database
@@ -75,12 +71,11 @@ export async function getAllCompanyLeads(existingRecords?: number): Promise<void
 
     const response = await fetchSingleCompanyLead(91432);
 
-    console.log(`Fetched ${response.numFound} company leads`);
+    console.log(`Fetched ${response.companyInformation[0].CompanyName} company leads`);
 
-    await appendToFile<SingleCompanyLeadType>(SingleCompanyFile, response.docs);
+    await appendToFile<SingleCompanyType>(SingleCompanyFile, response);
     // await addAllCompanyLeadsToPostgresqlFromApi(response);
-
   }
 
-  console.log('All company leads fetched successfully');
+  console.log('All Single Company Leads are fetched successfully');
 }
