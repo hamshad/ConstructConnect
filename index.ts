@@ -5,7 +5,7 @@ import { join } from 'path';
 import { exit } from "process";
 import colors from 'picocolors';
 import { CompanySql } from './src/companyLeads/CompanySql';
-import { getAllSingleCompanyLeads } from './src/companyLeads/SingleCompany';
+import { addAllSingleCompanyLeadsToDatabaseFromFile, getAllSingleCompanyLeads } from './src/companyLeads/SingleCompany';
 
 const stop = () => {
   SQL.closeSQL();
@@ -65,14 +65,14 @@ async function companyLeadsMenu() {
       }
       case 'fetchSingleApi': {
         const s = spinner();
-        s.start('Counting companies in database');
-        const length = (await SQL.client.query('select company_id from companies limit 1')).rows;
 
-        s.stop('Found ' + length[0].company_id + ' companies');
+        // s.start('Counting companies in database');
+        // const length = (await SQL.client.query('select company_id from companies limit 1')).rows;
+        // s.stop('Found ' + length[0].company_id + ' companies');
 
         s.start('Fetching company leads from API');
         try {
-          await getAllSingleCompanyLeads(Number(length[0].company_id));
+          await getAllSingleCompanyLeads();
           s.stop('Companies added/updated successfully!');
         } catch (error) {
           s.stop(colors.red(`Error: ${error}`));
@@ -80,7 +80,7 @@ async function companyLeadsMenu() {
         break;
       }
       case 'AddSingleToDB': {
-        await addAllCompanyLeadsToPostgresqlFromFile();
+        await addAllSingleCompanyLeadsToDatabaseFromFile();
         break;
       }
       case 'countCompanies': {

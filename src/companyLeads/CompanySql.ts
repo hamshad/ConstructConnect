@@ -5,7 +5,6 @@ import { Transactional } from '../utils/Transactions';
 
 export class CompanySql {
 
-  @Transactional()
   async getAllCompanies(limit?: number) {
     console.log('start transaction');
     try {
@@ -22,7 +21,18 @@ export class CompanySql {
     }
   }
 
-  @Transactional()
+  async getAllCompaniesIds(): Promise<string[]> {
+    try {
+      console.log('Getting all companies id...');
+      const result = await SQL.client.query('SELECT company_id FROM companies;');
+      return result.rows;
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+      throw error;
+    }
+  }
+
+  // @Transactional()
   async addCompanies(company: typeof companyRawLeads[0]) {
     console.log('[COMPANY]:', company);
 
@@ -64,8 +74,7 @@ export class CompanySql {
         company.address
       ];
 
-      const insertResult = await SQL.client.query(query, values);
-      console.log('INSERT RESULT', insertResult);
+      await SQL.client.query(query, values);
     } catch (error) {
       console.error(error);
       throw new Error(`Error adding company: ${error}`);
@@ -112,15 +121,16 @@ export class CompanySql {
         company.companyInformation[0].IsWatched,
         company.companyInformation[0].ProjectCount,
         company.companyInformation[0].LastUpdatedDate,
-        company.associatedContacts,
-        company.companyPortfolio,
+        company.associatedContacts.length === 0 ? company.associatedContacts : null,
+        company.companyPortfolio.length === 0 ? company.companyPortfolio : null,
         company.companyNotes.length === 0 ? company.companyNotes : null,
         companyId
       ];
 
-      const insertResult = await SQL.client.query(query, values);
+      console.log('VALUES:', values);
+
+      await SQL.client.query(query, values);
       s.stop('Single Companies from file added to database');
-      console.log('INSERT RESULT', insertResult);
     } catch (error) {
       s.stop('Error adding single company' + error);
       throw new Error(`Error adding single company: ${error}`);

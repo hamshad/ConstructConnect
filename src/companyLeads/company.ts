@@ -3,6 +3,7 @@ import type companyRawLeads from '../../data/companyRawLeads';
 import { CompanySql } from './CompanySql';
 import { appendToFile } from '../../data/FileOperations';
 import { spinner } from '@clack/prompts';
+import { getAllSingleCompanyLeads } from './SingleCompany';
 
 type CompanyLead = typeof companyRawLeads[0];
 
@@ -69,6 +70,7 @@ async function addAllCompanyLeadsToPostgresqlFromApi(data: ApiResponse): Promise
 }
 
 export async function addAllCompanyLeadsToPostgresqlFromFile(filePath: string = join(process.cwd(), 'data', 'company_leads.json')): Promise<void> {
+
   if (!await Bun.file(filePath).exists()) {
     console.log(`${filePath} does not exist`);
     return;
@@ -78,12 +80,16 @@ export async function addAllCompanyLeadsToPostgresqlFromFile(filePath: string = 
   s.start('Adding companies to database...');
 
   const fileContent = await Bun.file(filePath).text();
-  const data = JSON.parse(fileContent);
+  const data: CompanyLead[] = JSON.parse(fileContent);
 
   let i = 0;
   for (const company of data) {
     // console.log(company)
+
     await CompanyDB.addCompanies(company);
+
+    // Adding Single Company lead from api to file
+    await getAllSingleCompanyLeads(company.companyId.toString())
 
     i++;
     s.message(`Adding companies to database... ${i}/${data.length}`);
@@ -94,6 +100,7 @@ export async function addAllCompanyLeadsToPostgresqlFromFile(filePath: string = 
   console.log("\n");
   console.log("\n");
 }
+
 export async function getAllCompanyLeads(existingRecords?: number): Promise<void> {
   const limit: number = 150;
   let offset: number = Number(existingRecords) ?? 0;
