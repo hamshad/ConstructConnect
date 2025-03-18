@@ -66,10 +66,6 @@ async function companyLeadsMenu() {
       case 'fetchSingleApi': {
         const s = spinner();
 
-        // s.start('Counting companies in database');
-        // const length = (await SQL.client.query('select company_id from companies limit 1')).rows;
-        // s.stop('Found ' + length[0].company_id + ' companies');
-
         s.start('Fetching company leads from API');
         try {
           await getAllSingleCompanyLeads();

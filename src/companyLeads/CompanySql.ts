@@ -103,9 +103,9 @@ export class CompanySql {
             is_watched = $9,
             project_count = $10,
             last_updated_date = $11::timestamp,
-            associated_contacts = $12,
-            company_portfolio = $13,
-            company_notes = $14
+            associated_contacts = $12::jsonb,
+            company_portfolio = $13::jsonb,
+            company_notes = $14::jsonb
         WHERE company_id = $15;
       `;
 
@@ -121,9 +121,9 @@ export class CompanySql {
         company.companyInformation[0].IsWatched,
         company.companyInformation[0].ProjectCount,
         company.companyInformation[0].LastUpdatedDate,
-        company.associatedContacts.length === 0 ? company.associatedContacts : null,
-        company.companyPortfolio.length === 0 ? company.companyPortfolio : null,
-        company.companyNotes.length === 0 ? company.companyNotes : null,
+        JSON.stringify(company.associatedContacts),
+        JSON.stringify(company.companyPortfolio),
+        JSON.stringify(company.companyNotes),
         companyId
       ];
 
@@ -134,6 +134,67 @@ export class CompanySql {
     } catch (error) {
       s.stop('Error adding single company' + error);
       throw new Error(`Error adding single company: ${error}`);
+    }
+  }
+
+  async addSingleCompanyDirectly(companyFromList: typeof companyRawLeads[0], singleCompany: SingleCompanyType): Promise<void> {
+
+
+    const query = `
+      INSERT INTO public.companies(
+        company_id, name, industry_value, project_count, project_value, 
+        phone, email, role_group, role_type, is_watched, is_viewed, 
+        last_viewed_date, location, address, website, fax, 
+        source_company_id, last_updated_date, associated_contacts, 
+        company_portfolio, company_notes, updated_id
+      )
+      VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 
+             $14, $15, $16, $17, $18::timestamp, 
+             $19::jsonb,
+             $20::jsonb,
+             $21::jsonb,
+             $22)
+      RETURNING id`;
+
+    // Values array that matches the parameters in order
+    /**
+     * NOTE: if we are parsing a json array into postgresql
+     *       we should create a column of type jsonb (not jsonb[])
+     *       and we need to use the ::jsonb to cast the value
+     *       with stringified json array in values.
+     */
+    const values = [
+      companyFromList.companyId,
+      singleCompany.companyInformation[0].CompanyName,
+      companyFromList.industryValue ?? null,
+      companyFromList.projectCount,
+      companyFromList.projectValue,
+      singleCompany.companyInformation[0].Phone ?? null,
+      singleCompany.companyInformation[0].EmailAddress ?? null,
+      companyFromList.roleGroup,
+      companyFromList.roleType,
+      singleCompany.companyInformation[0].IsWatched,
+      companyFromList.isViewed,
+      companyFromList.lastViewedDate,
+      companyFromList.location,
+      singleCompany.companyInformation[0].Address,
+      singleCompany.companyInformation[0].Website ?? null,
+      singleCompany.companyInformation[0].Fax ?? null,
+      singleCompany.companyInformation[0].SourceCompanyId,
+      singleCompany.companyInformation[0].LastUpdatedDate,
+      JSON.stringify(singleCompany.associatedContacts),
+      JSON.stringify(singleCompany.companyPortfolio),
+      JSON.stringify(singleCompany.companyNotes),
+      singleCompany.companyInformation[0].Id
+    ];
+
+    console.log(values);
+
+    try {
+      const result = await SQL.client.query(query, values);
+      console.log('Company inserted with ID:', result.rows[0].id);
+    } catch (error) {
+      console.error('Error inserting company:', error);
     }
   }
 }
