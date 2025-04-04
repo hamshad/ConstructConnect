@@ -5,12 +5,14 @@ import { Transactional } from '../utils/Transactions';
 
 export class CompanySql {
 
+  table_name = 'company_leads';
+
   async getAllCompanies(limit?: number) {
     console.log('start transaction');
     try {
       console.log('Getting all companies...');
       const result = await SQL.client.query(
-        'SELECT * FROM companies LIMIT $1;',
+        'SELECT * FROM company_leads LIMIT $1;',
         [limit ?? 10000]
       );
       console.log('commit transaction');
@@ -38,40 +40,57 @@ export class CompanySql {
 
     try {
       const query = `
-        INSERT INTO companies (
-          company_id,
-          name,
-          industry_value,
-          project_count,
-          project_value,
-          phone,
-          email,
-          role_group,
-          role_type,
-          is_watched,
-          is_viewed,
-          last_viewed_date,
-          location,
-          address
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-        ON CONFLICT (id) DO NOTHING;
+        INSERT INTO public.company_leads (
+              company_id,
+              name,
+              industry_value,
+              project_count,
+              project_value,
+              phone,
+              is_watched,
+              is_viewed,
+              latitude,
+              longitude,
+              city,
+              country_code,
+              county,
+              state,
+              state_code,
+              zipcode,
+              address_line1,
+              address_line2,
+              last_viewed_date,
+              role_groups,
+              role_types
+            ) VALUES (
+              $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+              $11, $12, $13, $14, $15, $16, $17, $18, $19, $20::jsonb, $21::jsonb
+            )
+            RETURNING company_id;
       `;
 
       const values = [
         company.companyId,
         company.name,
-        company.industryValue ?? null,
-        company.projectCount ?? null,
-        company.projectValue ?? null,
-        company.phone ?? null,
-        company.email ?? null,
-        company.roleGroup ?? null,
-        company.roleType ?? null,
-        company.isWatched ?? null,
-        company.isViewed ?? null,
-        company.lastViewedDate ?? null,
-        company.location,
-        company.address
+        company.industryValue || null,
+        company.projectCount || null,
+        company.projectValue || null,
+        company.phone || null,
+        company.isWatched !== undefined ? company.isWatched : false,
+        company.isViewed !== undefined ? company.isViewed : false,
+        company.location.latitude || null,
+        company.location.longitude || null,
+        company.address.city || null,
+        company.address.countryCode || null,
+        company.address.county || null,
+        company.address.state || null,
+        company.address.stateCode || null,
+        company.address.zipcode || null,
+        company.address.addressLine1 || null,
+        company.address.addressLine2 || null,
+        company.lastViewedDate || null,
+        JSON.stringify(company.roleGroup) || null,
+        JSON.stringify(company.roleType) || null
       ];
 
       await SQL.client.query(query, values);

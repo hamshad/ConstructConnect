@@ -69,7 +69,12 @@ async function addAllCompanyLeadsToPostgresqlFromApi(data: ApiResponse): Promise
   console.log("\n");
 }
 
-export async function addAllCompanyLeadsToPostgresqlFromFile(filePath: string = join(process.cwd(), 'data', 'company_leads.json')): Promise<void> {
+/**
+* Adds all company leads to PostgreSQL database from the local cached data JSON file.
+*
+* @param {string} filePath - The path to the JSON file containing company leads data
+*/
+export async function addAllCompanyLeadsToPostgresqlFromFile(filePath: string = join(process.cwd(), 'data', 'company_leads_2.4.2025.json')): Promise<void> {
 
   if (!await Bun.file(filePath).exists()) {
     console.log(`${filePath} does not exist`);
@@ -84,12 +89,10 @@ export async function addAllCompanyLeadsToPostgresqlFromFile(filePath: string = 
 
   let i = 0;
   for (const company of data) {
-    // console.log(company)
 
+    // Adding company to database one by one
     await CompanyDB.addCompanies(company);
 
-    // Adding Single Company lead from api to file
-    await getAllSingleCompanyLeads(company.companyId.toString())
 
     i++;
     s.message(`Adding companies to database... ${i}/${data.length}`);
@@ -105,7 +108,7 @@ export async function getAllCompanyLeads(existingRecords?: number): Promise<void
   const limit: number = 150;
   let offset: number = Number(existingRecords) ?? 0;
   let totalRecords: number = Infinity;
-  const outputFilePath: string = join(process.cwd(), 'data', 'company_leads.json');
+  const outputFilePath: string = join(process.cwd(), 'data', 'company_leads_2.4.2025.json');
 
   while (offset < totalRecords) {
     console.log(`\n--------------------------------------------------------------------`);
