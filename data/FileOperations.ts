@@ -1,6 +1,7 @@
 export async function appendToFile<T>(filePath: string, data: T): Promise<void> {
   try {
     let existingData: T[] = [];
+
     if (await Bun.file(filePath).exists()) {
       const fileContent = await Bun.file(filePath).text();
       existingData = JSON.parse(fileContent);
