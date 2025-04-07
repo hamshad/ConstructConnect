@@ -6,7 +6,7 @@ import { exit } from "process";
 import colors from 'picocolors';
 import { CompanySql } from './src/companyLeads/CompanySql';
 import { addAllSingleCompanyLeadsToDatabaseFromFile, getAllSingleCompanyLeads } from './src/companyLeads/SingleCompany';
-import { countProjectLeadsInFile, getAllProjectLeads } from './src/projectLeads/project';
+import { addAllProjectLeadsToPostgresqlFromFile, countProjectLeadsInFile, getAllProjectLeads } from './src/projectLeads/project';
 
 const stop = () => {
   SQL.closeSQL();
@@ -22,7 +22,7 @@ async function projectLeadsMenu() {
       options: [
         { value: 'fetchApi', label: 'Call all project leads from API' },
         { value: 'fileCount', label: 'Length of project leads data in file' },
-        // { value: 'addToDb', label: 'Add all project leads to the database' },
+        { value: 'fileToDB', label: 'Add all Project Leads from JSON to Database' },
         // { value: 'fetchSingleApi', label: 'Call SINGLE project lead from API' },
         // { value: 'AddSingleToDB', label: 'Add all SINGLE project to the database' },
         // { value: 'countCompanies', label: 'Total number of projects in the database' },
@@ -69,14 +69,14 @@ async function projectLeadsMenu() {
         stop();
         break;
       }
-      // case 'addToDb': {
-      //   const s = spinner();
-      //   s.start('Adding company leads from file to database');
-      //   await addAllCompanyLeadsToPostgresqlFromFile();
-      //   s.stop('Companies from file added to database');
-      //   stop();
-      //   break;
-      // }
+      case 'fileToDB': {
+        const s = spinner();
+        s.start('Adding Project Leads from JSON file to Database');
+        await addAllProjectLeadsToPostgresqlFromFile();
+        s.stop('Project Leads from file added to database');
+        stop();
+        break;
+      }
       // case 'fetchSingleApi': {
       //   const s = spinner();
 
