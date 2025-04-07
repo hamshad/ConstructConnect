@@ -4,7 +4,7 @@ import { spinner } from '@clack/prompts';
 import type projectLeads from '../../data/projectLeads';
 import { ProjectSql } from './ProjectSql';
 
-type ProjectLead = typeof projectLeads[0];
+type ProjectLead = ProjectLeadsType['data'][0];
 
 interface ApiResponse {
   numFound: number;

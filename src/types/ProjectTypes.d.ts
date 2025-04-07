@@ -1,7 +1,7 @@
 type ProjectLeadsType = {
   numFound: number;
   start: number;
-  data: typeof projectLeads[0] & {
+  data: {
     projectId: number;
     projectUrl: string;
     id: number;

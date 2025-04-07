@@ -85,6 +85,7 @@ export class ProjectSql {
         $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
         $31, $32, $33, $34, $35, $36, $37, $38
       )
+      ON CONFLICT (project_id) DO NOTHING
       RETURNING *;
     `;
 
@@ -114,27 +115,24 @@ export class ProjectSql {
         data.address.city ?? null,
         data.address.state ?? null,
         data.address.zipcode ?? null,
-        data.addressLine1 ?? null,
+        data.address.addressLine1 ?? null,
         data.lastUpdatedDate ?? null,
         data.createdProjectDate ?? null,
         data.isShareable ?? true,
-        data.categories ?? null,
-        data.subCategories ?? null,
-        data.constructionTypes ?? null,
-        data.sectors ?? null,
-        data.trades ?? null,
-        data.stories ?? null,
-        data.projectValueRange ?? null,
-        data.csiCodes ?? null,
-        data.tags ?? null
+        JSON.stringify(data.categories ?? null),
+        JSON.stringify(data.subCategories ?? null),
+        JSON.stringify(data.constructionTypes ?? null),
+        JSON.stringify(data.sectors ?? null),
+        JSON.stringify(data.trades ?? null),
+        JSON.stringify(data.stories ?? null),
+        JSON.stringify(data.projectValueRange ?? null),
+        JSON.stringify(data.csiCodes ?? null),
+        JSON.stringify(data.tags ?? null)
       ];
 
       const result = await SQL.client.query(query, values);
-      console.log('Inserted project lead:', result.rows[0]);
     } catch (err) {
       console.error('Error inserting project lead:', err);
-    } finally {
-      SQL.client.release();
     }
   }
 

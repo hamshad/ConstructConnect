@@ -110,6 +110,8 @@ export async function getAllCompanyLeads(existingRecords?: number): Promise<void
   let totalRecords: number = Infinity;
   const outputFilePath: string = join(process.cwd(), 'data', 'company_leads_2.4.2025.json');
 
+  const projectJsonFile = await appendToFile<CompanyLead[]>(outputFilePath);
+
   while (offset < totalRecords) {
     console.log(`\n--------------------------------------------------------------------`);
     console.log(`Fetching company leads from offset: ${offset} to ${offset + limit}`);
@@ -123,7 +125,7 @@ export async function getAllCompanyLeads(existingRecords?: number): Promise<void
 
     console.log(`Fetched ${response.numFound} company leads`);
 
-    await appendToFile<CompanyLead[]>(outputFilePath, response.docs);
+    projectJsonFile(response.docs);
     // await addAllCompanyLeadsToPostgresqlFromApi(response);
 
     totalRecords = response.numFound;
