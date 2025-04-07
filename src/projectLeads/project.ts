@@ -1,10 +1,10 @@
 import { join } from 'path';
-import type companyRawLeads from '../../data/companyRawLeads';
-import { CompanySql } from './ProjectSql';
 import { appendToFile } from '../../data/FileOperations';
 import { spinner } from '@clack/prompts';
+import type projectLeads from '../../data/projectLeads';
+import { ProjectSql } from './ProjectSql';
 
-type ProjectLead = typeof companyRawLeads[0];
+type ProjectLead = typeof projectLeads[0];
 
 interface ApiResponse {
   numFound: number;
@@ -14,7 +14,7 @@ interface ApiResponse {
 }
 
 
-const CompanyDB = new CompanySql();
+const ProjectDB = new ProjectSql();
 
 const projectFilePath = join(process.cwd(), 'data', 'project_leads_2.4.2025.json');
 
@@ -58,8 +58,7 @@ async function addAllProjectLeadsToPostgresqlFromApi(data: ApiResponse): Promise
   for (const company of data.docs) {
     console.log(company)
 
-    // TODO: Project
-    await CompanyDB.addCompanies(company);
+    await ProjectDB.insertProjectLead(company);
   }
 
   console.log("\n");
@@ -101,9 +100,7 @@ export async function addAllProjectLeadsToPostgresqlFromFile(filePath: string = 
   let i = 0;
   for (const company of data) {
 
-    // TODO: Project
-    await CompanyDB.addCompanies(company);
-
+    await ProjectDB.insertProjectLead(company);
 
     i++;
     s.message(`Adding Projects to database... ${i}/${data.length}`);

@@ -2,15 +2,16 @@ import { spinner } from '@clack/prompts';
 import type companyRawLeads from '../../data/companyRawLeads';
 import { SQL } from '../utils/SQL';
 import { Transactional } from '../utils/Transactions';
+import type projectLeads from '../../data/projectLeads';
 
-export class CompanySql {
+export class ProjectSql {
 
-  table_name = 'company_leads';
+  table_name = 'project_leads';
 
-  async getAllCompanies(limit?: number) {
+  async getAllProjects(limit?: number) {
     console.log('start transaction');
     try {
-      console.log('Getting all companies...');
+      console.log('Getting all projects...');
       const result = await SQL.client.query(
         'SELECT * FROM company_leads LIMIT $1;',
         [limit ?? 10000]
@@ -23,7 +24,7 @@ export class CompanySql {
     }
   }
 
-  async getAllCompaniesIds(): Promise<string[]> {
+  async getAllProjectsIds(): Promise<string[]> {
     try {
       console.log('Getting all companies id...');
       const result = await SQL.client.query('SELECT company_id FROM companies;');
@@ -34,74 +35,111 @@ export class CompanySql {
     }
   }
 
-  // @Transactional()
-  async addCompanies(company: typeof companyRawLeads[0]) {
-    console.log('[COMPANY]:', company);
+  async insertProjectLead(data: ProjectLeadsType['data'][0]): Promise<void> {
 
     try {
       const query = `
-        INSERT INTO public.company_leads (
-              company_id,
-              name,
-              industry_value,
-              project_count,
-              project_value,
-              phone,
-              is_watched,
-              is_viewed,
-              latitude,
-              longitude,
-              city,
-              country_code,
-              county,
-              state,
-              state_code,
-              zipcode,
-              address_line1,
-              address_line2,
-              last_viewed_date,
-              role_groups,
-              role_types
-            ) VALUES (
-              $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-              $11, $12, $13, $14, $15, $16, $17, $18, $19, $20::jsonb, $21::jsonb
-            )
-            RETURNING company_id;
-      `;
+      INSERT INTO project_leads (
+        project_id,
+        unique_id,
+        title,
+        project_url,
+        bid_date,
+        property_type,
+        document_count,
+        project_status,
+        start_date,
+        project_value,
+        building_uses_string,
+        addenda_count,
+        content_type,
+        bids_to_contact_role_group,
+        contracting_method,
+        project_category,
+        square_footage,
+        is_watched,
+        is_viewed,
+        is_hidden,
+        latitude,
+        longitude,
+        city,
+        state,
+        zipcode,
+        address_line1,
+        last_updated_date,
+        created_project_date,
+        is_shareable,
+        categories,
+        sub_categories,
+        construction_types,
+        sectors,
+        trades,
+        stories,
+        value_ranges,
+        csi_codes,
+        tags
+      )
+      VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+        $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
+        $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
+        $31, $32, $33, $34, $35, $36, $37, $38
+      )
+      RETURNING *;
+    `;
 
       const values = [
-        company.companyId,
-        company.name,
-        company.industryValue || null,
-        company.projectCount || null,
-        company.projectValue || null,
-        company.phone || null,
-        company.isWatched !== undefined ? company.isWatched : false,
-        company.isViewed !== undefined ? company.isViewed : false,
-        company.location.latitude || null,
-        company.location.longitude || null,
-        company.address.city || null,
-        company.address.countryCode || null,
-        company.address.county || null,
-        company.address.state || null,
-        company.address.stateCode || null,
-        company.address.zipcode || null,
-        company.address.addressLine1 || null,
-        company.address.addressLine2 || null,
-        company.lastViewedDate || null,
-        JSON.stringify(company.roleGroup) || null,
-        JSON.stringify(company.roleType) || null
+        data.projectId ?? null,
+        data.uniqueProjectId ?? null,
+        data.title ?? null,
+        data.projectUrl ?? null,
+        data.bidDate ?? null,
+        data.propertyType ?? null,
+        data.documentCount ?? null,
+        data.projectStatus ?? null,
+        data.startDate ?? null,
+        data.projectValue ?? null,
+        data.buildingUsesString ?? null,
+        data.addendaCount ?? null,
+        data.contentType ?? null,
+        data.bidsToContactRoleGroup ?? null,
+        data.contractingMethod ?? null,
+        data.projectCategory ?? null,
+        data.squareFootage ?? null,
+        data.isWatched ?? false,
+        data.isViewed ?? false,
+        data.isHidden ?? false,
+        data.location.latitude ?? null,
+        data.location.longitude ?? null,
+        data.address.city ?? null,
+        data.address.state ?? null,
+        data.address.zipcode ?? null,
+        data.addressLine1 ?? null,
+        data.lastUpdatedDate ?? null,
+        data.createdProjectDate ?? null,
+        data.isShareable ?? true,
+        data.categories ?? null,
+        data.subCategories ?? null,
+        data.constructionTypes ?? null,
+        data.sectors ?? null,
+        data.trades ?? null,
+        data.stories ?? null,
+        data.projectValueRange ?? null,
+        data.csiCodes ?? null,
+        data.tags ?? null
       ];
 
-      await SQL.client.query(query, values);
-    } catch (error) {
-      console.error(error);
-      throw new Error(`Error adding company: ${error}`);
+      const result = await SQL.client.query(query, values);
+      console.log('Inserted project lead:', result.rows[0]);
+    } catch (err) {
+      console.error('Error inserting project lead:', err);
+    } finally {
+      SQL.client.release();
     }
   }
 
   @Transactional()
-  async addSingleCompany(companyId: string, company: SingleCompanyType) {
+  async addSingleProjectc(companyId: string, company: SingleCompanyType) {
     console.log('[SINGLE COMPANY]:', company);
 
     const s = spinner();
@@ -156,7 +194,7 @@ export class CompanySql {
     }
   }
 
-  async addSingleCompanyDirectly(companyFromList: typeof companyRawLeads[0], singleCompany: SingleCompanyType): Promise<void> {
+  async addSingleProjectDirectly(companyFromList: typeof companyRawLeads[0], singleCompany: SingleCompanyType): Promise<void> {
 
 
     const query = `
