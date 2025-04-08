@@ -1,30 +1,34 @@
-export async function appendToFile<T>(filePath: string): Promise<Function<T>> {
-  try {
+import { write } from "console";
 
-    const file = Bun.file(filePath);
+export async function appendToFile<T>(filePath: string) {
 
-    if (!await file.exists()) {
-      console.error("File does not exist. Creating a new file...");
-    }
-
-    const fileContent = await file.text();
-    let existingData: T[] = JSON.parse(fileContent);
-    const writer = file.writer();
-    // Bun.write(filePath, JSON.stringify(updateData, null, 2));
-
-    return (data: T) => {
-
-      const updateData = existingData.concat(data);
-      writer.write(JSON.stringify(data, null, 2));
-
-      console.info(`Appended new records to ${filePath}`);
-      console.info(`Total records: ${updateData.length}`);
-      console.log('\n');
-
-    }
-  } catch (error) {
-    console.error(error);
+  if (!await Bun.file(filePath).exists()) {
+    console.info("File does not exist. Creating a new file...");
+    Bun.write(filePath, JSON.stringify([], null, 2));
   }
 
+  const file = Bun.file(filePath);
+  const existingData: T[] = await file.json();
+  const writer = file.writer();
+  // Bun.write(filePath, JSON.stringify(updateData, null, 2));
+
+  return {
+    append: (data: T) => {
+      writer.ref();
+
+      const newData = existingData.concat(data);
+      writer.write(JSON.stringify(newData, null, 2));
+
+      console.info(`Appended new records to ${filePath}`);
+      console.info(`Total records in File: ${newData.length}`);
+      console.log('\n');
+
+      writer.unref();
+    },
+    close: () => {
+      writer.end();
+      console.info(`Closed file writer for ${filePath}`);
+    }
+  }
 }
 

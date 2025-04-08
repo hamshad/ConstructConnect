@@ -68,15 +68,20 @@ async function addAllProjectLeadsToPostgresqlFromApi(data: ApiResponse): Promise
 }
 
 export async function countProjectLeadsInFile(): Promise<number> {
-  if (!await Bun.file(projectFilePath).exists()) {
-    console.log(`${projectFilePath} does not exist`);
+  try {
+    if (!await Bun.file(projectFilePath).exists()) {
+      console.log(`${projectFilePath} does not exist`);
+      return 0;
+    }
+
+    const fileContent = await Bun.file(projectFilePath).text();
+    const data: [any] = JSON.parse(fileContent);
+
+    return Number(data.length);
+  } catch (error) {
+    console.error('Error reading file:', error);
     return 0;
   }
-
-  const fileContent = await Bun.file(projectFilePath).text();
-  const data: ProjectLead[] = JSON.parse(fileContent);
-
-  return Number(data.length);
 }
 
 /**
@@ -112,11 +117,18 @@ export async function addAllProjectLeadsToPostgresqlFromFile(filePath: string = 
   console.log("\n");
 }
 
+/**
+* Fetches all project leads from the API and appends them to a JSON file.
+*
+* @param {number} existingRecords - The number of existing records in the JSON file (optional)
+* @returns {Promise<void>}
+*/
 export async function getAllProjectLeads(existingRecords?: number): Promise<void> {
   const limit: number = 150;
   let offset: number = Number(existingRecords) ?? 0;
   let totalRecords: number = Infinity;
   const outputFilePath: string = projectFilePath;
+  const outputFile = await appendToFile<ProjectLead[]>(outputFilePath);
 
   while (offset < totalRecords) {
     console.log(`\n--------------------------------------------------------------------`);
@@ -131,7 +143,7 @@ export async function getAllProjectLeads(existingRecords?: number): Promise<void
 
     console.log(`Fetched ${response.numFound} project leads`);
 
-    await appendToFile<ProjectLead[]>(outputFilePath, response.docs);
+    outputFile.append(response.docs);
     // await addAllCompanyLeadsToPostgresqlFromApi(response);
 
     totalRecords = response.numFound;
@@ -139,6 +151,8 @@ export async function getAllProjectLeads(existingRecords?: number): Promise<void
     console.log(`Total records: ${totalRecords}`);
     console.log(`Offset: ${offset}`);
   }
+
+  outputFile.close();
 
   console.log('All project leads fetched successfully');
 }
