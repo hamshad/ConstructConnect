@@ -76,32 +76,37 @@ async function addAllCompanyLeadsToPostgresqlFromApi(data: ApiResponse): Promise
 */
 export async function addAllCompanyLeadsToPostgresqlFromFile(filePath: string = join(process.cwd(), 'data', 'company_leads_2.4.2025.json')): Promise<void> {
 
-  if (!await Bun.file(filePath).exists()) {
-    console.log(`${filePath} does not exist`);
+  try {
+    if (!await Bun.file(filePath).exists()) {
+      console.log(`${filePath} does not exist`);
+      return;
+    }
+
+    const s = spinner();
+    s.start('Adding companies to database...');
+
+    const fileContent = await Bun.file(filePath).text();
+    const data: CompanyLead[] = JSON.parse(fileContent);
+
+    let i = 0;
+    for (const company of data) {
+
+      // Adding company to database one by one
+      await CompanyDB.addCompanies(company);
+
+
+      i++;
+      s.message(`Adding companies to database... ${i}/${data.length}`);
+    }
+
+    console.log("\n");
+    s.stop('Companies added/updated successfully! Total companies added: ' + data.length);
+    console.log("\n");
+    console.log("\n");
+  } catch (error) {
+    console.error('Error reading file:', error);
     return;
   }
-
-  const s = spinner();
-  s.start('Adding companies to database...');
-
-  const fileContent = await Bun.file(filePath).text();
-  const data: CompanyLead[] = JSON.parse(fileContent);
-
-  let i = 0;
-  for (const company of data) {
-
-    // Adding company to database one by one
-    await CompanyDB.addCompanies(company);
-
-
-    i++;
-    s.message(`Adding companies to database... ${i}/${data.length}`);
-  }
-
-  console.log("\n");
-  s.stop('Companies added/updated successfully! Total companies added: ' + data.length);
-  console.log("\n");
-  console.log("\n");
 }
 
 export async function getAllCompanyLeads(existingRecords?: number): Promise<void> {
@@ -109,8 +114,6 @@ export async function getAllCompanyLeads(existingRecords?: number): Promise<void
   let offset: number = Number(existingRecords) ?? 0;
   let totalRecords: number = Infinity;
   const outputFilePath: string = join(process.cwd(), 'data', 'company_leads_2.4.2025.json');
-
-  const projectJsonFile = await appendToFile<CompanyLead[]>(outputFilePath);
 
   while (offset < totalRecords) {
     console.log(`\n--------------------------------------------------------------------`);
@@ -125,7 +128,7 @@ export async function getAllCompanyLeads(existingRecords?: number): Promise<void
 
     console.log(`Fetched ${response.numFound} company leads`);
 
-    projectJsonFile(response.docs);
+    await appendToFile<CompanyLead[]>(outputFilePath, response.docs);
     // await addAllCompanyLeadsToPostgresqlFromApi(response);
 
     totalRecords = response.numFound;
