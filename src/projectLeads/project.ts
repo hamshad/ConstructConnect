@@ -16,10 +16,10 @@ interface ApiResponse {
 
 const ProjectDB = new ProjectSql();
 
-const projectFilePath = join(process.cwd(), 'data', 'project_leads_2.4.2025.json');
+const projectFilePath1 = join(process.cwd(), 'data', 'project_leads_2.4.2025.json');
 const projectFilePath2 = join(process.cwd(), 'data', 'project_leads_9.4.2025.json');
 const projectFilePath3 = join(process.cwd(), 'data', 'project_leads_9.4.2025(2).json');
-const mainFilePath = projectFilePath3;
+const mainFilePath = projectFilePath1;
 
 async function fetchProjectLeads(offset: number, limit: number = 150): Promise<ApiResponse> {
   let url;

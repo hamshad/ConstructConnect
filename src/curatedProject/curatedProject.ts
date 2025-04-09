@@ -2,26 +2,15 @@ import { join } from 'path';
 import { appendToFile } from '../../data/FileOperations';
 import { spinner } from '@clack/prompts';
 import type projectLeads from '../../data/projectLeads';
-import { ProjectSql } from './CuratedProjectSql';
+import { CuratedProjectSql } from './CuratedProjectSql';
+import { ProjectSql } from '../projectLeads/ProjectSql';
 
-type ProjectLead = ProjectLeadsType['data'][0];
+const DB = new CuratedProjectSql();
 
-interface ApiResponse {
-  numFound: number;
-  start: number;
-  docs: ProjectLead[];
-  facets: any;
-}
+var projectPaths: string[] = []
+const mainFilePath = projectPaths[0] ?? join(process.cwd(), 'data', 'curated_project_leads.json');
 
-
-const ProjectDB = new ProjectSql();
-
-const projectFilePath1 = join(process.cwd(), 'data', 'project_leads_2.4.2025.json');
-const projectFilePath2 = join(process.cwd(), 'data', 'project_leads_9.4.2025.json');
-const projectFilePath3 = join(process.cwd(), 'data', 'project_leads_9.4.2025(2).json');
-const mainFilePath = projectFilePath1;
-
-async function fetchProjectLeads(offset: number, limit: number = 150): Promise<ApiResponse> {
+async function fetchCuratedProjectLeads(projectId: string): Promise<CuratedProjectType> {
   let url;
   try {
     url = new URL('https://api.io.constructconnect.com/search/v1/ProjectLeads');
@@ -34,20 +23,13 @@ async function fetchProjectLeads(offset: number, limit: number = 150): Promise<A
   }
 
   url.searchParams.set('x-api-key', Bun.env.API_PUBLIC_KEY);
+  url.searchParams.set('projectId', projectId);
 
   const response = await fetch(url.toString(), {
-    method: 'POST',
+    method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      // 'Authorization': `Bearer ${Bun.env.API_SECRET_KEY}`
     },
-    body: JSON.stringify({
-      // "sort": "",
-      // "sortDir": "asc",
-      "includeHidden": true,
-      "limit": limit,
-      "offset": offset
-    })
   });
 
   if (!response.ok) {
@@ -57,11 +39,11 @@ async function fetchProjectLeads(offset: number, limit: number = 150): Promise<A
   return response.json();
 }
 
-async function addAllProjectLeadsToPostgresqlFromApi(data: ApiResponse): Promise<void> {
-  for (const company of data.docs) {
-    console.log(company)
+async function addAllProjectLeadsToPostgresqlFromApi(data: CuratedProjectType[]): Promise<void> {
+  for (const project of data) {
+    console.log(project)
 
-    await ProjectDB.insertProjectLead(company);
+    await DB.insert(project);
   }
 
   console.log("\n");
@@ -103,19 +85,19 @@ export async function addAllProjectLeadsToPostgresqlFromFile(filePath: string = 
   s.start('Adding Project to database...');
 
   const fileContent = await Bun.file(filePath).text();
-  const data: ProjectLead[] = JSON.parse(fileContent);
+  const data: CuratedProjectType[] = JSON.parse(fileContent);
 
   let i = 0;
   for (const company of data) {
 
-    await ProjectDB.insertProjectLead(company);
+    await DB.insert(company);
 
     i++;
-    s.message(`Adding Projects to database... ${i}/${data.length}`);
+    s.message(`Adding Curated Projects to database... ${i}/${data.length}`);
   }
 
   console.log("\n");
-  s.stop('Projects added/updated successfully! Total Projects added: ' + data.length);
+  s.stop('Projects added/updated successfully! Total Curated Projects added: ' + data.length);
   console.log("\n");
   console.log("\n");
 }
@@ -126,33 +108,29 @@ export async function addAllProjectLeadsToPostgresqlFromFile(filePath: string = 
 * @param {number} existingRecords - The number of existing records in the JSON file (optional)
 * @returns {Promise<void>}
 */
-export async function getAllProjectLeads(existingRecords?: number): Promise<void> {
-  const limit: number = 150;
+export async function getAllCuratedProject(existingRecords?: number): Promise<void> {
   let offset: number = Number(existingRecords) ?? 0;
-  let totalRecords: number = Infinity;
-  const outputFilePath: string = mainFilePath;
+  const totalRecords: number = await (new ProjectSql()).getProjectLength();
 
   while (offset < totalRecords) {
-    console.log(`\n--------------------------------------------------------------------`);
-    console.log(`Fetching company leads from offset: ${offset} to ${offset + limit}`);
+    console.log('Offset/Total: ', offset, '/', totalRecords);
 
-    // if (offset % 1500 === 0) {
-    //   console.log('Sleeping for 5 seconds');
-    //   await Bun.sleep(5000);
-    // }
+    const outputFilePath: string = join(process.cwd(), 'data', `curated_project_leads_${offset}-${offset + 50}.json`);
 
-    const response = await fetchProjectLeads(offset, limit);
-
-    console.log(`Fetched ${response.numFound} project leads`);
-
-    await appendToFile<ProjectLead[]>(outputFilePath, response.docs);
-    // await addAllCompanyLeadsToPostgresqlFromApi(response);
-
-    totalRecords = response.numFound;
-    offset += limit;
-    console.log(`Total records: ${totalRecords}`);
     console.log(`Offset: ${offset}`);
+    const getProjectIds = await (new ProjectSql()).getAllProjectsIds(offset);
+
+    for (const projectId of getProjectIds) {
+
+      const response = await fetchCuratedProjectLeads(projectId);
+
+      await appendToFile<CuratedProjectType>(outputFilePath, response);
+      console.log(`Fetched ${response.projectDetails[0].Id} curated project`);
+
+    }
+
+    offset += offset - totalRecords < 100 ? offset - totalRecords : 50;
   }
 
-  console.log('All project leads fetched successfully');
+  console.info('All curated projects fetched successfully');
 }

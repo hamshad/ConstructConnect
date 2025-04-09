@@ -15,14 +15,12 @@ export class ProjectSql {
   }
 
   async getAllProjects(limit?: number) {
-    console.log('start transaction');
     try {
       console.log('Getting all projects...');
       const result = await SQL.client.query(
         'SELECT * FROM company_leads LIMIT $1;',
         [limit ?? 10000]
       );
-      console.log('commit transaction');
       return result.rows;
     } catch (error) {
       console.error('Error fetching companies:', error);
@@ -30,13 +28,13 @@ export class ProjectSql {
     }
   }
 
-  async getAllProjectsIds(): Promise<string[]> {
+  async getAllProjectsIds(offset: number): Promise<string[]> {
     try {
-      console.log('Getting all companies id...');
-      const result = await SQL.client.query('SELECT company_id FROM companies;');
+      console.log(`Getting all projects id on offset ${offset}...`);
+      const result = await SQL.client.query(`SELECT project_id FROM ${this.table_name} limit 50 offset ${offset};`);
       return result.rows;
     } catch (error) {
-      console.error('Error fetching companies:', error);
+      console.error('Error fetching projects:', error);
       throw error;
     }
   }
