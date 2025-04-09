@@ -28,10 +28,22 @@ export class ProjectSql {
     }
   }
 
-  async getAllProjectsIds(offset: number): Promise<string[]> {
+  async getAllProjectsIds(): Promise<string[]> {
     try {
-      console.log(`Getting all projects id on offset ${offset}...`);
-      const result = await SQL.client.query(`SELECT project_id FROM ${this.table_name} limit 50 offset ${offset};`);
+      console.log(`Getting all projects id...`);
+      const result = await SQL.client.query(`SELECT project_id FROM ${this.table_name};`);
+      return result.rows;
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      throw error;
+    }
+  }
+
+  async getAllCuratedProjectIds(offset: number): Promise<string[]> {
+    try {
+      console.log(`Getting all curated projects id on offset ${offset}...`);
+      const result = await SQL.client.query(`SELECT project_id FROM ${this.table_name} where content_type = 'CuratedProject' LIMIT 50 OFFSET ${offset};`);
+
       return result.rows;
     } catch (error) {
       console.error('Error fetching projects:', error);

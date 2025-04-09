@@ -7,13 +7,14 @@ import { ProjectSql } from '../projectLeads/ProjectSql';
 
 const DB = new CuratedProjectSql();
 
-var projectPaths: string[] = []
+const projectPathFile = join(process.cwd(), 'src', 'curatedProject', 'curatedPaths.json');
+var projectPaths: string[] = await Bun.file(projectPathFile).exists() ? JSON.parse(await Bun.file(projectPathFile).text()) : [];
 const mainFilePath = projectPaths[0] ?? join(process.cwd(), 'data', 'curated_project_leads.json');
 
 async function fetchCuratedProjectLeads(projectId: string): Promise<CuratedProjectType> {
   let url;
   try {
-    url = new URL('https://api.io.constructconnect.com/search/v1/ProjectLeads');
+    url = new URL('https://api.io.constructconnect.com/cc/v1/curatedProjectInfo');
   } catch (error) {
     throw new Error('Invalid URL');
   }
@@ -33,6 +34,7 @@ async function fetchCuratedProjectLeads(projectId: string): Promise<CuratedProje
   });
 
   if (!response.ok) {
+    console.error('Error fetching project leads:', JSON.stringify(response, null, 2));
     throw new Error(`HTTP error! status: ${response.status}`);
   }
 
@@ -74,7 +76,7 @@ export async function countProjectLeadsInFile(filePath: string = mainFilePath): 
 *
 * @param {string} filePath - The path to the JSON file containing company leads data
 */
-export async function addAllProjectLeadsToPostgresqlFromFile(filePath: string = mainFilePath): Promise<void> {
+export async function addAllCuratedProjectLeadsToPostgresqlFromFile(filePath: string = mainFilePath): Promise<void> {
 
   if (!await Bun.file(filePath).exists()) {
     console.log(`${filePath} does not exist`);
@@ -115,12 +117,21 @@ export async function getAllCuratedProject(existingRecords?: number): Promise<vo
   while (offset < totalRecords) {
     console.log('Offset/Total: ', offset, '/', totalRecords);
 
+    // Creating a file and push it on the array
     const outputFilePath: string = join(process.cwd(), 'data', `curated_project_leads_${offset}-${offset + 50}.json`);
 
-    console.log(`Offset: ${offset}`);
-    const getProjectIds = await (new ProjectSql()).getAllProjectsIds(offset);
+    await appendToFile<string>(projectPathFile, outputFilePath);
 
-    for (const projectId of getProjectIds) {
+
+    console.log(`Offset: ${offset}`);
+    // NOTE: unknown type is used here to avoid type errors
+    // and overlap another type on the default type
+    const getProjectIds: unknown = await (new ProjectSql()).getAllCuratedProjectIds(offset);
+    const projectIds = (getProjectIds as { project_id: string }[]).map((project) => project.project_id);
+
+    for (const projectId of projectIds) {
+
+      console.log(`Fetching project with ID: ${JSON.stringify(projectId)}`);
 
       const response = await fetchCuratedProjectLeads(projectId);
 
