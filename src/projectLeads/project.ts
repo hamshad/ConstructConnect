@@ -17,6 +17,9 @@ interface ApiResponse {
 const ProjectDB = new ProjectSql();
 
 const projectFilePath = join(process.cwd(), 'data', 'project_leads_2.4.2025.json');
+const projectFilePath2 = join(process.cwd(), 'data', 'project_leads_9.4.2025.json');
+const projectFilePath3 = join(process.cwd(), 'data', 'project_leads_9.4.2025(2).json');
+const mainFilePath = projectFilePath3;
 
 async function fetchProjectLeads(offset: number, limit: number = 150): Promise<ApiResponse> {
   let url;
@@ -67,14 +70,14 @@ async function addAllProjectLeadsToPostgresqlFromApi(data: ApiResponse): Promise
   console.log("\n");
 }
 
-export async function countProjectLeadsInFile(): Promise<number> {
+export async function countProjectLeadsInFile(filePath: string = mainFilePath): Promise<number> {
   try {
-    if (!await Bun.file(projectFilePath).exists()) {
-      console.log(`${projectFilePath} does not exist`);
+    if (!await Bun.file(filePath).exists()) {
+      console.log(`${filePath} does not exist`);
       return 0;
     }
 
-    const fileContent = await Bun.file(projectFilePath).text();
+    const fileContent = await Bun.file(filePath).text();
     const data: [any] = JSON.parse(fileContent);
 
     return Number(data.length);
@@ -89,7 +92,7 @@ export async function countProjectLeadsInFile(): Promise<number> {
 *
 * @param {string} filePath - The path to the JSON file containing company leads data
 */
-export async function addAllProjectLeadsToPostgresqlFromFile(filePath: string = projectFilePath): Promise<void> {
+export async function addAllProjectLeadsToPostgresqlFromFile(filePath: string = mainFilePath): Promise<void> {
 
   if (!await Bun.file(filePath).exists()) {
     console.log(`${filePath} does not exist`);
@@ -127,8 +130,7 @@ export async function getAllProjectLeads(existingRecords?: number): Promise<void
   const limit: number = 150;
   let offset: number = Number(existingRecords) ?? 0;
   let totalRecords: number = Infinity;
-  const outputFilePath: string = projectFilePath;
-  const outputFile = await appendToFile<ProjectLead[]>(outputFilePath);
+  const outputFilePath: string = mainFilePath;
 
   while (offset < totalRecords) {
     console.log(`\n--------------------------------------------------------------------`);
@@ -143,7 +145,7 @@ export async function getAllProjectLeads(existingRecords?: number): Promise<void
 
     console.log(`Fetched ${response.numFound} project leads`);
 
-    outputFile.append(response.docs);
+    await appendToFile<ProjectLead[]>(outputFilePath, response.docs);
     // await addAllCompanyLeadsToPostgresqlFromApi(response);
 
     totalRecords = response.numFound;
@@ -151,8 +153,6 @@ export async function getAllProjectLeads(existingRecords?: number): Promise<void
     console.log(`Total records: ${totalRecords}`);
     console.log(`Offset: ${offset}`);
   }
-
-  outputFile.close();
 
   console.log('All project leads fetched successfully');
 }

@@ -8,6 +8,12 @@ export class ProjectSql {
 
   table_name = 'project_leads';
 
+  async getProjectLength() {
+    const result = await SQL.client.query(`SELECT COUNT(*) FROM ${this.table_name};`,);
+    console.log('Project length:', result.rows[0].count);
+    return result.rows[0].count;
+  }
+
   async getAllProjects(limit?: number) {
     console.log('start transaction');
     try {
@@ -132,7 +138,8 @@ export class ProjectSql {
 
       const result = await SQL.client.query(query, values);
     } catch (err) {
-      console.error('Error inserting project lead:', err);
+      console.error('Error inserting project lead: ', err);
+      console.info(JSON.stringify(data, null, 2))
     }
   }
 

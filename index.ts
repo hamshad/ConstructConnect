@@ -7,6 +7,7 @@ import colors from 'picocolors';
 import { CompanySql } from './src/companyLeads/CompanySql';
 import { addAllSingleCompanyLeadsToDatabaseFromFile, getAllSingleCompanyLeads } from './src/companyLeads/SingleCompany';
 import { addAllProjectLeadsToPostgresqlFromFile, countProjectLeadsInFile, getAllProjectLeads } from './src/projectLeads/project';
+import { ProjectSql } from './src/projectLeads/ProjectSql';
 
 const stop = () => {
   SQL.closeSQL();
@@ -25,7 +26,7 @@ async function projectLeadsMenu() {
         { value: 'fileToDB', label: 'Add all Project Leads from JSON to Database' },
         // { value: 'fetchSingleApi', label: 'Call SINGLE project lead from API' },
         // { value: 'AddSingleToDB', label: 'Add all SINGLE project to the database' },
-        // { value: 'countCompanies', label: 'Total number of projects in the database' },
+        { value: 'lengthProject', label: 'Total number of Project Leads in the database' },
         // { value: 'showAll', label: 'Show all projects in the database' },
         // { value: 'showTop10', label: 'Show Top 10 projects in the database' },
         { value: 'back', label: 'Back to main menu' }
@@ -43,17 +44,18 @@ async function projectLeadsMenu() {
         const s = spinner();
         s.start('Counting projects in database');
         // const length = (await SQL.client.query(`SELECT COUNT(*) FROM public.project_leads`)).rows;
-        const length = [{ count: await countProjectLeadsInFile() }];
+        // const length = await countProjectLeadsInFile();
+        const length = await (new ProjectSql()).getProjectLength();
 
-        s.stop('Found ' + length[0].count + ' companies');
+        s.stop('Found ' + length + ' companies');
 
         const count = await confirm({
-          message: `Start fetching from ${length[0].count}?`,
+          message: `Start fetching from ${length}?`,
         });
 
         s.start('Fetching company leads from API');
         try {
-          await getAllProjectLeads(count ? Number(length[0].count) : 0);
+          await getAllProjectLeads(count ? Number(length) : 0);
           s.stop('Projects added/updated successfully!');
         } catch (error) {
           s.stop(colors.red(`Error: ${error}`));
@@ -93,28 +95,26 @@ async function projectLeadsMenu() {
       //   await addAllSingleCompanyLeadsToDatabaseFromFile();
       //   break;
       // }
-      // case 'countCompanies': {
-      //   const s = spinner();
-      //   s.start('Counting companies');
+      case 'lengthProject': {
+        const s = spinner();
+        s.start('Counting Project Leads');
 
-      //   const res = await SQL.client.query(`SELECT COUNT(*) FROM companies`);
-      //   s.stop('Database count retrieved');
+        const length = await (new ProjectSql()).getProjectLength();
+        s.stop('Database count retrieved');
 
-      //   if (res.rows[0].count === 0) {
-      //     console.log(colors.yellow("No companies found in the database!"));
-      //   } else {
-      //     console.log(colors.green(`Total number of companies in the database: ${res.rows[0].count}`));
-      //   }
+        if (length === 0) {
+          console.log(colors.yellow("No companies found in the database!"));
+        } else {
+          console.log(colors.green(`Total number of companies in the database: ${length}`));
+        }
 
-      //   try {
-      //     const filePath = join(process.cwd(), 'data', 'company_leads.json');
-      //     const fileContent = await Bun.file(filePath).text();
-      //     console.log(colors.blue(`Data file count: ${JSON.parse(fileContent).length}`));
-      //   } catch (error) {
-      //     console.error(colors.red(`Error reading data file: ${error}`));
-      //   }
-      //   break;
-      // }
+        try {
+          console.log(colors.blue(`Data file count: ${await countProjectLeadsInFile()}`));
+        } catch (error) {
+          console.error(colors.red(`Error reading data file: ${error}`));
+        }
+        break;
+      }
       // case 'showAll': {
       //   const s = spinner();
       //   s.start('Loading all companies');
