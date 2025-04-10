@@ -2,7 +2,8 @@
   "name": "constructconnect",
   "module": "index.ts",
   "scripts": {
-    "start": "bun run ./index.js"
+    "start": "bun run ./index.js",
+    "test": "jest"
   },
   "type": "module",
   "devDependencies": {

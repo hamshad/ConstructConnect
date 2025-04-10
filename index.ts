@@ -9,7 +9,7 @@ import { addAllSingleCompanyLeadsToDatabaseFromFile, getAllSingleCompanyLeads } 
 import { addAllProjectLeadsToPostgresqlFromFile, countProjectLeadsInFile, getAllProjectLeads } from './src/projectLeads/project';
 import { ProjectSql } from './src/projectLeads/ProjectSql';
 import { CuratedProjectSql } from './src/curatedProject/CuratedProjectSql';
-import { addAllCuratedProjectLeadsToPostgresqlFromFile, getAllCuratedProject } from './src/curatedProject/curatedProject';
+import { addAllCuratedProjectLeadsToPostgresqlFromFile, countCuratedProjectsInFile, getAllCuratedProject } from './src/curatedProject/curatedProject';
 
 const stop = () => {
   SQL.closeSQL();
@@ -105,9 +105,9 @@ async function curatedProjectMenu() {
       // }
       case 'lengthProject': {
         const s = spinner();
-        s.start('Counting Project Leads');
+        s.start('Counting Curated Projects');
 
-        const length = await (new ProjectSql()).getProjectLength();
+        const length = await (new CuratedProjectSql()).getLength();
         s.stop('Database count retrieved');
 
         if (length === 0) {
@@ -117,7 +117,7 @@ async function curatedProjectMenu() {
         }
 
         try {
-          console.log(colors.blue(`Data file count: ${await countProjectLeadsInFile()}`));
+          console.log(colors.blue(`Data file count: ${await countCuratedProjectsInFile()}`));
         } catch (error) {
           console.error(colors.red(`Error reading data file: ${error}`));
         }

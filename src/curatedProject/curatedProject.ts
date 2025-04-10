@@ -1,17 +1,14 @@
 import { join } from 'path';
 import { appendToFile } from '../../data/FileOperations';
 import { spinner } from '@clack/prompts';
-import type projectLeads from '../../data/projectLeads';
 import { CuratedProjectSql } from './CuratedProjectSql';
 import { ProjectSql } from '../projectLeads/ProjectSql';
 
 const DB = new CuratedProjectSql();
 
 const projectPathFile = join(process.cwd(), 'src', 'curatedProject', 'curatedPaths.json');
-var projectPaths: string[] = await Bun.file(projectPathFile).exists() ? JSON.parse(await Bun.file(projectPathFile).text()) : [];
-const mainFilePath = projectPaths[0] ?? join(process.cwd(), 'data', 'curated_project_leads.json');
 
-async function fetchCuratedProjectLeads(projectId: string): Promise<CuratedProjectType> {
+async function fetchCuratedProjectLeads(projectId: string): Promise<CuratedProjectType | undefined> {
   let url;
   try {
     url = new URL('https://api.io.constructconnect.com/cc/v1/curatedProjectInfo');
@@ -35,7 +32,10 @@ async function fetchCuratedProjectLeads(projectId: string): Promise<CuratedProje
 
   if (!response.ok) {
     console.error('Error fetching project leads:', JSON.stringify(response, null, 2));
-    throw new Error(`HTTP error! status: ${response.status}`);
+    console.error(`HTTP error! status: ${response.status}`);
+    const curatedProjectApiError = join(process.cwd(), 'src', 'curatedProject', 'curatedProjectApiError.json');
+    await Bun.write(curatedProjectApiError, `Error fetching curated project no. ${projectId} with status code ${response.status}: ${JSON.stringify(response, null, 2)}`);
+    return undefined;
   }
 
   return response.json();
@@ -54,17 +54,33 @@ async function addAllProjectLeadsToPostgresqlFromApi(data: CuratedProjectType[])
   console.log("\n");
 }
 
-export async function countProjectLeadsInFile(filePath: string = mainFilePath): Promise<number> {
+export async function countCuratedProjectsInFile(): Promise<number> {
   try {
-    if (!await Bun.file(filePath).exists()) {
-      console.log(`${filePath} does not exist`);
+
+    let numberOfProjects: number = 0;
+
+    if (!await Bun.file(projectPathFile).exists()) {
+      console.log(`${projectPathFile} does not exist`);
       return 0;
     }
 
-    const fileContent = await Bun.file(filePath).text();
-    const data: [any] = JSON.parse(fileContent);
+    const projectPaths = await Bun.file(projectPathFile).json();
 
-    return Number(data.length);
+    for (const filePath of projectPaths) {
+
+      if (!await Bun.file(filePath).exists()) {
+        console.log(`${filePath} does not exist`);
+        return 0;
+      }
+
+      const fileContent = await Bun.file(filePath).text();
+      const data: [any] = JSON.parse(fileContent);
+
+      numberOfProjects += data.length;
+    }
+
+    return numberOfProjects;
+
   } catch (error) {
     console.error('Error reading file:', error);
     return 0;
@@ -76,33 +92,45 @@ export async function countProjectLeadsInFile(filePath: string = mainFilePath): 
 *
 * @param {string} filePath - The path to the JSON file containing company leads data
 */
-export async function addAllCuratedProjectLeadsToPostgresqlFromFile(filePath: string = mainFilePath): Promise<void> {
+export async function addAllCuratedProjectLeadsToPostgresqlFromFile(): Promise<void> {
 
-  if (!await Bun.file(filePath).exists()) {
-    console.log(`${filePath} does not exist`);
+  if (!await Bun.file(projectPathFile).exists()) {
+    console.log(`${projectPathFile} does not exist`);
     return;
   }
 
-  const s = spinner();
-  s.start('Adding Project to database...');
+  const projectPaths = await Bun.file(projectPathFile).json();
 
-  const fileContent = await Bun.file(filePath).text();
-  const data: CuratedProjectType[] = JSON.parse(fileContent);
+  for (const filePath of projectPaths) {
+    console.log('Project Path: ', filePath);
 
-  let i = 0;
-  for (const company of data) {
+    if (!await Bun.file(filePath).exists()) {
+      console.log(`${filePath} does not exist`);
+      continue;
+    }
 
-    await DB.insert(company);
+    const s = spinner();
+    s.start('Adding Project to database...');
 
-    i++;
-    s.message(`Adding Curated Projects to database... ${i}/${data.length}`);
+    const fileContent = await Bun.file(filePath).arrayBuffer();
+    const data: CuratedProjectType[] = JSON.parse(new TextDecoder().decode(fileContent));
+
+    let i = 0;
+    for (const company of data) {
+
+      await DB.insert(company);
+
+      i++;
+      s.message(`Adding Curated Projects to database... ${i}/${data.length}`);
+    }
+
+    console.log("\n");
+    s.stop('Projects added/updated successfully! Total Curated Projects added: ' + data.length);
+    console.log("\n");
+    console.log("\n");
   }
-
-  console.log("\n");
-  s.stop('Projects added/updated successfully! Total Curated Projects added: ' + data.length);
-  console.log("\n");
-  console.log("\n");
 }
+
 
 /**
 * Fetches all project leads from the API and appends them to a JSON file.
@@ -135,12 +163,14 @@ export async function getAllCuratedProject(existingRecords?: number): Promise<vo
 
       const response = await fetchCuratedProjectLeads(projectId);
 
-      await appendToFile<CuratedProjectType>(outputFilePath, response);
-      console.log(`Fetched ${response.projectDetails[0].Id} curated project`);
-
+      // Check if the response is valid
+      if (response) {
+        await appendToFile<CuratedProjectType>(outputFilePath, response);
+        console.log(`Fetched ${response.projectDetails[0].Id} curated project`);
+      }
     }
 
-    offset += offset - totalRecords < 100 ? offset - totalRecords : 50;
+    offset += Math.abs(offset - totalRecords) < 100 ? offset - totalRecords : 50;
   }
 
   console.info('All curated projects fetched successfully');

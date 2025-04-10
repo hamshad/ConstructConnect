@@ -177,3 +177,5 @@ dist
 
 data/*.json
 data/*.zip
+
+*.json
