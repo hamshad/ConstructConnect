@@ -1,7 +1,6 @@
 import { join } from 'path';
 import { appendToFile } from '../../data/FileOperations';
 import { spinner } from '@clack/prompts';
-import type projectLeads from '../../data/projectLeads';
 import { ProjectSql } from './ProjectSql';
 
 type ProjectLead = ProjectLeadsType['data'][0];
@@ -19,7 +18,7 @@ const ProjectDB = new ProjectSql();
 const projectFilePath1 = join(process.cwd(), 'data', 'project_leads_2.4.2025.json');
 const projectFilePath2 = join(process.cwd(), 'data', 'project_leads_9.4.2025.json');
 const projectFilePath3 = join(process.cwd(), 'data', 'project_leads_9.4.2025(2).json');
-const mainFilePath = projectFilePath1;
+const mainFilePath = [projectFilePath1, projectFilePath2, projectFilePath3];
 
 async function fetchProjectLeads(offset: number, limit: number = 150): Promise<ApiResponse> {
   let url;
@@ -70,17 +69,23 @@ async function addAllProjectLeadsToPostgresqlFromApi(data: ApiResponse): Promise
   console.log("\n");
 }
 
-export async function countProjectLeadsInFile(filePath: string = mainFilePath): Promise<number> {
+export async function countProjectLeadsInFile(filePaths: string[] = mainFilePath): Promise<number> {
+
+  let length = 0;
   try {
-    if (!await Bun.file(filePath).exists()) {
-      console.log(`${filePath} does not exist`);
-      return 0;
+    for (const filePath of filePaths) {
+      if (!await Bun.file(filePath).exists()) {
+        console.log(`${filePath} does not exist`);
+        return 0;
+      }
+
+      const fileContent = await Bun.file(filePath).text();
+      const data: [any] = JSON.parse(fileContent);
+
+      length += data.length;
+
     }
-
-    const fileContent = await Bun.file(filePath).text();
-    const data: [any] = JSON.parse(fileContent);
-
-    return Number(data.length);
+    return Number(length);
   } catch (error) {
     console.error('Error reading file:', error);
     return 0;
@@ -92,26 +97,30 @@ export async function countProjectLeadsInFile(filePath: string = mainFilePath): 
 *
 * @param {string} filePath - The path to the JSON file containing company leads data
 */
-export async function addAllProjectLeadsToPostgresqlFromFile(filePath: string = mainFilePath): Promise<void> {
-
-  if (!await Bun.file(filePath).exists()) {
-    console.log(`${filePath} does not exist`);
-    return;
-  }
+export async function addAllProjectLeadsToPostgresqlFromFile(filePaths: string[] = mainFilePath): Promise<void> {
 
   const s = spinner();
   s.start('Adding Project to database...');
 
-  const fileContent = await Bun.file(filePath).text();
-  const data: ProjectLead[] = JSON.parse(fileContent);
+  for (const filePath of filePaths) {
+    if (!await Bun.file(filePath).exists()) {
+      console.log(`${filePath} does not exist`);
+      return;
+    }
 
-  let i = 0;
-  for (const company of data) {
 
-    await ProjectDB.insertProjectLead(company);
+    const fileContent = await Bun.file(filePath).text();
+    const data: ProjectLead[] = JSON.parse(fileContent);
 
-    i++;
-    s.message(`Adding Projects to database... ${i}/${data.length}`);
+    let i = 0;
+    for (const company of data) {
+
+      await ProjectDB.insertProjectLead(company);
+
+      i++;
+      s.message(`Adding Projects to database... ${i}/${data.length}`);
+    }
+
   }
 
   console.log("\n");
@@ -119,6 +128,8 @@ export async function addAllProjectLeadsToPostgresqlFromFile(filePath: string = 
   console.log("\n");
   console.log("\n");
 }
+
+
 
 /**
 * Fetches all project leads from the API and appends them to a JSON file.
