@@ -237,3 +237,14 @@ type CuratedProjectType = {
     FolderPermissionRestrictionsExist: boolean;
   }[];
 }
+
+
+type ProjectCompanyType = {
+  id: number;
+  project_id: number;
+  company_id: number;
+  company_name: string;
+  role: string;
+  created_at: Date;
+  updated_at: Date;
+}
