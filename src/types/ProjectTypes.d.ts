@@ -4,36 +4,29 @@ type ProjectLeadsType = {
   data: {
     projectId: number;
     projectUrl: string;
-    id: number;
-    title: string;
-    bidDate: string;
+    projectDescription: string;
     propertyType: string;
     documentCount: number;
-    projectStatus: string;
-    startDate: string;
-    projectValue: number;
-    buildingUsesString: string;
     addendaCount: number;
-    contentType: string;
-    uniqueProjectId: string;
+    lastAddendaDate: string;
+    hasNewAddenda: boolean;
     bidsToContactRoleGroup: string;
     contractingMethod: string;
     floorsBelowGrade: string;
     categories: string[];
     subCategories: string[];
+    certifications: string[];
     constructionTypes: string[];
     projectSections: string[];
-    sectors: string[];
     trades: string[];
-    stories: string[];
     projectValueRange: string[];
     isWatched: boolean;
-    isViewed: boolean;
     isHidden: boolean;
     projectCategory: string;
     location: {
       latitude: number;
       longitude: number;
+      [key: string]: any;
     };
     address: {
       city: string;
@@ -45,17 +38,29 @@ type ProjectLeadsType = {
       stateAbbr: string;
       addressLine1: string;
       region: string;
+      [key: string]: any;
     };
     squareFootage: number;
     csiCodes: string[];
     companyId: number[];
     companyNameList: string[];
-    tags: any[];
     lastUpdatedDate: string;
     createdProjectDate: string;
+    isShareable: boolean;
+    id: number;
+    title: string;
+    bidDate: string;
+    startDate: string;
+    projectStatus: string;
+    projectValue: number;
+    buildingUsesString: string;
+    contentType: string;
+    uniqueProjectId: string;
+    sectors: string[];
+    isViewed: boolean;
     documentAcquisitionStatus: string;
     documentAcquisitionStatusId: number;
-    isShareable: boolean;
+    [key: string]: any;
   }[];
   facets: {
     bidsToContactRolegroup: {

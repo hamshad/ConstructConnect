@@ -52,7 +52,6 @@ export class ProjectSql {
   }
 
   async insertProjectLead(data: ProjectLeadsType['data'][0]): Promise<void> {
-
     try {
       const query = `
       INSERT INTO project_leads (
@@ -93,18 +92,34 @@ export class ProjectSql {
         stories,
         value_ranges,
         csi_codes,
-        tags
+        tags,
+        project_description,
+        floors_below_grade,
+        project_sections,
+        has_new_addenda,
+        last_addenda_date,
+        company_id,
+        company_name_list,
+        unique_project_id,
+        document_acquisition_status,
+        document_acquisition_status_id,
+        county,
+        state_code,
+        state_abbr,
+        region,
+        country_code
       )
       VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
         $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
         $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
-        $31, $32, $33, $34, $35, $36, $37, $38
+        $31, $32, $33, $34, $35, $36, $37, $38, $39, $40,
+        $41, $42, $43, $44, $45, $46, $47, $48, $49, $50,
+        $51, $52, $53
       )
       ON CONFLICT (project_id) DO NOTHING
       RETURNING *;
-    `;
-
+  `;
       const values = [
         data.projectId ?? null,
         data.uniqueProjectId ?? null,
@@ -126,12 +141,12 @@ export class ProjectSql {
         data.isWatched ?? false,
         data.isViewed ?? false,
         data.isHidden ?? false,
-        data.location.latitude ?? null,
-        data.location.longitude ?? null,
-        data.address.city ?? null,
-        data.address.state ?? null,
-        data.address.zipcode ?? null,
-        data.address.addressLine1 ?? null,
+        data.location?.latitude ?? null,
+        data.location?.longitude ?? null,
+        data.address?.city ?? null,
+        data.address?.state ?? null,
+        data.address?.zipcode ?? null,
+        data.address?.addressLine1 ?? null,
         data.lastUpdatedDate ?? null,
         data.createdProjectDate ?? null,
         data.isShareable ?? true,
@@ -143,9 +158,23 @@ export class ProjectSql {
         JSON.stringify(data.stories ?? null),
         JSON.stringify(data.projectValueRange ?? null),
         JSON.stringify(data.csiCodes ?? null),
-        JSON.stringify(data.tags ?? null)
+        JSON.stringify(data.tags ?? null),
+        data.projectDescription ?? null,
+        data.floorsBelowGrade ?? null,
+        JSON.stringify(data.projectSections ?? null),
+        data.hasNewAddenda ?? null,
+        data.lastAddendaDate ?? null,
+        JSON.stringify(data.companyId ?? null),
+        JSON.stringify(data.companyNameList ?? null),
+        data.uniqueProjectId ?? null, // Note: This appears duplicated as unique_id above, check your schema
+        data.documentAcquisitionStatus ?? null,
+        data.documentAcquisitionStatusId ?? null,
+        data.address?.county ?? null,
+        data.address?.stateCode ?? null,
+        data.address?.stateAbbr ?? null,
+        data.address?.region ?? null,
+        data.address?.countryCode ?? null
       ];
-
       const result = await SQL.client.query(query, values);
     } catch (err) {
       console.error('Error inserting project lead: ', err);

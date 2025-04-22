@@ -124,7 +124,7 @@ export async function addAllProjectLeadsToPostgresqlFromFile(filePaths: string[]
   }
 
   console.log("\n");
-  s.stop('Projects added/updated successfully! Total Projects added: ' + data.length);
+  s.stop('Projects added/updated successfully!');
   console.log("\n");
   console.log("\n");
 }
