@@ -16,6 +16,140 @@ const stop = () => {
   exit(0);
 }
 
+/**
+* Company Info
+*
+* @description This function displays a menu for company info options and executes the selected action.
+*/
+async function companyInfoMenu() {
+  let backToMain = false;
+
+  while (!backToMain) {
+    const action = await select({
+      message: 'Company Info Options:',
+      options: [
+        { value: 'fetchApi', label: 'Call all Company Infos from API' },
+        { value: 'fileCount', label: 'Length of Company Infos data in file' },
+        { value: 'fileToDB', label: 'Add all Company Infos from JSON to Database' },
+        // { value: 'fetchSingleApi', label: 'Call SINGLE project lead from API' },
+        // { value: 'AddSingleToDB', label: 'Add all SINGLE project to the database' },
+        { value: 'lengthProject', label: 'Total number of Company Infos in the database' },
+        // { value: 'showAll', label: 'Show all projects in the database' },
+        // { value: 'showTop10', label: 'Show Top 10 projects in the database' },
+        { value: 'back', label: 'Back to main menu' }
+      ]
+    });
+
+    if (!action) {
+      // User cancelled with Ctrl+C
+      outro('Operation cancelled');
+      process.exit(0);
+    }
+
+    switch (action) {
+      case 'fetchApi': {
+        const s = spinner();
+        s.start('Counting Company Infos in database');
+        // const length = (await SQL.client.query(`SELECT COUNT(*) FROM public.project_leads`)).rows;
+        // const length = await countProjectLeadsInFile();
+        const length = await (new CuratedProjectSql()).getLength();
+
+        s.stop('Found ' + length + ' curated projects');
+
+        const count = await confirm({
+          message: `Start fetching from ${length}?`,
+        });
+
+        s.start('Fetching Company Infos from API');
+        try {
+          await getAllCuratedProject(count ? Number(length) : 0);
+          s.stop('Company Infos added/updated successfully!');
+        } catch (error) {
+          s.stop(colors.red(`Error: ${error}`));
+        }
+        stop();
+        break;
+      }
+      case 'fileCount': {
+        const s = spinner();
+        s.start('Counting the projects in file');
+        console.log('\nNo. of projects in file is: ', await countProjectLeadsInFile());
+        s.stop();
+        stop();
+        break;
+      }
+      case 'fileToDB': {
+        const s = spinner();
+        s.start('Adding Curated Project from JSON file to Database');
+        await addAllCuratedProjectLeadsToPostgresqlFromFile();
+        s.stop('Curated Project from file added to database');
+        stop();
+        break;
+      }
+      // case 'fetchSingleApi': {
+      //   const s = spinner();
+
+      //   s.start('Fetching company leads from API');
+      //   try {
+      //     await getAllSingleCompanyLeads();
+      //     s.stop('Companies added/updated successfully!');
+      //   } catch (error) {
+      //     s.stop(colors.red(`Error: ${error}`));
+      //   }
+      //   break;
+      // }
+      // case 'AddSingleToDB': {
+      //   await addAllSingleCompanyLeadsToDatabaseFromFile();
+      //   break;
+      // }
+      case 'lengthProject': {
+        const s = spinner();
+        s.start('Counting Curated Projects');
+
+        const length = await (new CuratedProjectSql()).getLength();
+        s.stop('Database count retrieved');
+
+        if (length === 0) {
+          console.log(colors.yellow("No companies found in the database!"));
+        } else {
+          console.log(colors.green(`Total number of companies in the database: ${length}`));
+        }
+
+        try {
+          console.log(colors.blue(`Data file count: ${await countCuratedProjectsInFile()}`));
+        } catch (error) {
+          console.error(colors.red(`Error reading data file: ${error}`));
+        }
+        break;
+      }
+      // case 'showAll': {
+      //   const s = spinner();
+      //   s.start('Loading all companies');
+      //   const companies = await new CompanySql().getAllCompanies();
+      //   s.stop(`Loaded ${companies.length} companies`);
+
+      //   console.log(colors.green("All Companies:"));
+      //   console.table(companies);
+      //   break;
+      // }
+      // case 'showTop10': {
+      //   const s = spinner();
+      //   s.start('Loading top 10 companies');
+      //   const topCompanies = await new CompanySql().getAllCompanies(10);
+      //   s.stop(`Loaded ${topCompanies.length} companies`);
+
+      //   console.log(colors.green("Top 10 Companies:"));
+      //   console.table(topCompanies);
+      //   break;
+      // }
+      case 'back':
+      default:
+        backToMain = true;
+        break;
+    }
+  }
+}
+
 
 /**
 * Curated Project Menu
