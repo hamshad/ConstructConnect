@@ -10,6 +10,8 @@ import { addAllProjectLeadsToPostgresqlFromFile, countProjectLeadsInFile, getAll
 import { ProjectSql } from './src/projectLeads/ProjectSql';
 import { CuratedProjectSql } from './src/curatedProject/CuratedProjectSql';
 import { addAllCuratedProjectLeadsToPostgresqlFromFile, countCuratedProjectsInFile, getAllCuratedProject } from './src/curatedProject/curatedProject';
+import { CompanyInfoSql } from './src/companyInfo/companyInfoSql';
+import { getAllCompanyInfo } from './src/companyInfo/companyInfo';
 
 const stop = () => {
   SQL.closeSQL();
@@ -52,9 +54,9 @@ async function companyInfoMenu() {
         s.start('Counting Company Infos in database');
         // const length = (await SQL.client.query(`SELECT COUNT(*) FROM public.project_leads`)).rows;
         // const length = await countProjectLeadsInFile();
-        const length = await (new CuratedProjectSql()).getLength();
+        const length = await (new CompanyInfoSql()).getLength();
 
-        s.stop('Found ' + length + ' curated projects');
+        s.stop('Found ' + length + ' Company Infos');
 
         const count = await confirm({
           message: `Start fetching from ${length}?`,
@@ -62,7 +64,7 @@ async function companyInfoMenu() {
 
         s.start('Fetching Company Infos from API');
         try {
-          await getAllCuratedProject(count ? Number(length) : 0);
+          await getAllCompanyInfo(count ? Number(length) : 0);
           s.stop('Company Infos added/updated successfully!');
         } catch (error) {
           s.stop(colors.red(`Error: ${error}`));
@@ -72,8 +74,8 @@ async function companyInfoMenu() {
       }
       case 'fileCount': {
         const s = spinner();
-        s.start('Counting the projects in file');
-        console.log('\nNo. of projects in file is: ', await countProjectLeadsInFile());
+        s.start('Counting the company infos in file');
+        console.log('\nNo. of company infos in file is: ', await countProjectLeadsInFile());
         s.stop();
         stop();
         break;
@@ -567,6 +569,7 @@ async function companyLeadsMenu() {
         { value: 'companyLeads', label: 'Company Leads' },
         { value: 'projectLeads', label: 'Project Leads' },
         { value: 'curatedProjects', label: 'Curated Projects' },
+        { value: 'companyInfos', label: 'Company Info' },
         { value: 'exit', label: 'Exit' }
       ]
     });
@@ -586,6 +589,9 @@ async function companyLeadsMenu() {
         break;
       case 'curatedProjects':
         await curatedProjectMenu();
+        break;
+      case 'companyInfos':
+        await companyInfoMenu();
         break;
       case 'exit':
       default:

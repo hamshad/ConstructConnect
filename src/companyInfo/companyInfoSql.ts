@@ -31,7 +31,7 @@ export class CompanyInfoSql implements TableSql<SingleCompanyType> {
   async getAllIds(limit?: number, offset?: number): Promise<string[]> {
     try {
       console.log('Getting all companies id...');
-      const result = await SQL.client.query('SELECT company_id FROM companies LIMIT $1 OFFSET $2;', [limit ?? 10000, offset ?? 0]);
+      const result = await SQL.client.query('SELECT company_id FROM company_leads LIMIT $1 OFFSET $2;', [limit ?? 10000, offset ?? 0]);
       return result.rows;
     } catch (error) {
       console.error('Error fetching companies:', error);

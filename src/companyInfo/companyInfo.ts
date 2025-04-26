@@ -2,8 +2,10 @@ import { join } from 'path';
 import { appendToFile } from '../../data/FileOperations';
 import { spinner } from '@clack/prompts';
 import { CompanyInfoSql } from './companyInfoSql';
+import { CompanySql } from '../companyLeads/CompanySql';
 
 const DB = new CompanyInfoSql();
+const CompanyDB = new CompanySql();
 
 const companyInfoPathFile = join(process.cwd(), 'src', 'companyInfo', 'companyInfoPaths.json');
 
@@ -138,9 +140,9 @@ export async function addAllCompanyInfoToPostgresqlFromFile(): Promise<void> {
 * @returns {Promise<void>}
 */
 export async function getAllCompanyInfo(existingRecords?: number): Promise<void> {
-  const LIMIT = 50;
+  const LIMIT = 150;
   let offset: number = Number(existingRecords) ?? 0;
-  const totalRecords: number = await DB.getAll();
+  const totalRecords: number = await CompanyDB.getCompanyLength();
 
   while (offset < totalRecords) {
     console.log('Offset/Total: ', offset, '/', totalRecords);
@@ -155,7 +157,7 @@ export async function getAllCompanyInfo(existingRecords?: number): Promise<void>
     // NOTE: unknown type is used here to avoid type errors
     // and overlap another type on the default type
     const getCompanyIds: unknown = await DB.getAllIds(LIMIT, offset);
-    const companyIds = (getCompanyIds as { project_id: string }[]).map((project) => project.project_id);
+    const companyIds = (getCompanyIds as { company_id: string }[]).map((project) => project.company_id);
 
     for (const companyId of companyIds) {
 

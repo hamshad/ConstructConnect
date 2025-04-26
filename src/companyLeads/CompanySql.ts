@@ -7,6 +7,13 @@ export class CompanySql {
 
   table_name = 'company_leads';
 
+  async getCompanyLength() {
+    const result = await SQL.client.query(`SELECT COUNT(*) FROM ${this.table_name};`,);
+    console.log('Company length:', result.rows[0].count);
+    return result.rows[0].count;
+  }
+
+
   async getAllCompanies(limit?: number) {
     console.log('start transaction');
     try {
