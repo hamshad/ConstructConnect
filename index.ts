@@ -11,7 +11,7 @@ import { ProjectSql } from './src/projectLeads/ProjectSql';
 import { CuratedProjectSql } from './src/curatedProject/CuratedProjectSql';
 import { addAllCuratedProjectLeadsToPostgresqlFromFile, countCuratedProjectsInFile, getAllCuratedProject } from './src/curatedProject/curatedProject';
 import { CompanyInfoSql } from './src/companyInfo/companyInfoSql';
-import { getAllCompanyInfo } from './src/companyInfo/companyInfo';
+import { countCompanyInfosInFile, getAllCompanyInfo } from './src/companyInfo/companyInfo';
 
 const stop = () => {
   SQL.closeSQL();
@@ -52,9 +52,12 @@ async function companyInfoMenu() {
       case 'fetchApi': {
         const s = spinner();
         s.start('Counting Company Infos in database');
-        // const length = (await SQL.client.query(`SELECT COUNT(*) FROM public.project_leads`)).rows;
-        // const length = await countProjectLeadsInFile();
-        const length = await (new CompanyInfoSql()).getLength();
+
+        // From the File
+        const length = await countCompanyInfosInFile();
+
+        // From the Database
+        // const length = await (new CompanyInfoSql()).getLength();
 
         s.stop('Found ' + length + ' Company Infos');
 
@@ -75,16 +78,16 @@ async function companyInfoMenu() {
       case 'fileCount': {
         const s = spinner();
         s.start('Counting the company infos in file');
-        console.log('\nNo. of company infos in file is: ', await countProjectLeadsInFile());
+        console.log('\nNo. of company infos in file is: ', await countCompanyInfosInFile());
         s.stop();
         stop();
         break;
       }
       case 'fileToDB': {
         const s = spinner();
-        s.start('Adding Curated Project from JSON file to Database');
+        s.start('Adding Company Info from JSON file to Database');
         await addAllCuratedProjectLeadsToPostgresqlFromFile();
-        s.stop('Curated Project from file added to database');
+        s.stop('Company Info from file added to database');
         stop();
         break;
       }

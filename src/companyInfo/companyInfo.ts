@@ -55,7 +55,7 @@ async function addAllCompanyInfoToPostgresqlFromApi(data: SingleCompanyType[]): 
   console.log("\n");
 }
 
-export async function countCuratedProjectsInFile(): Promise<number> {
+export async function countCompanyInfosInFile(): Promise<number> {
   try {
 
     let numberOfCompanyInfo: number = 0;
@@ -65,9 +65,9 @@ export async function countCuratedProjectsInFile(): Promise<number> {
       return 0;
     }
 
-    const projectPaths = await Bun.file(companyInfoPathFile).json();
+    const companyPaths = await Bun.file(companyInfoPathFile).json();
 
-    for (const filePath of projectPaths) {
+    for (const filePath of companyPaths) {
 
       if (!await Bun.file(filePath).exists()) {
         console.log(`${filePath} does not exist`);
