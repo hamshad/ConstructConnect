@@ -144,6 +144,9 @@ export async function getAllCompanyInfo(existingRecords?: number): Promise<void>
   let offset: number = Number(existingRecords) ?? 0;
   const totalRecords: number = await CompanyDB.getCompanyLength();
 
+  // companyIds that are not in the database
+  const extraCompanyIds = ['2267025'];
+
   while (offset < totalRecords) {
     console.log('Offset/Total: ', offset, '/', totalRecords);
 
@@ -158,6 +161,9 @@ export async function getAllCompanyInfo(existingRecords?: number): Promise<void>
     // and overlap another type on the default type
     const getCompanyIds: unknown = await DB.getAllIds(LIMIT, offset);
     const companyIds = (getCompanyIds as { company_id: string }[]).map((project) => project.company_id);
+
+    // pushing the ids from the error json file
+    companyIds.push(...extraCompanyIds);
 
     for (const companyId of companyIds) {
 
