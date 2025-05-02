@@ -75,7 +75,6 @@ export class CompanyInfoSql implements TableSql<SingleCompanyType> {
       ];
 
       const result = await SQL.client.query(query, values);
-      console.log('Inserted company info successfully', result);
     } catch (err) {
       console.error('Error inserting company info: ', err);
       console.info(JSON.stringify(data, null, 2))

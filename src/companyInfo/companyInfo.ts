@@ -1,5 +1,5 @@
 import { join } from 'path';
-import { appendToFile } from '../../data/FileOperations';
+import { appendToFile, processFile } from '../../data/FileOperations';
 import { spinner } from '@clack/prompts';
 import { CompanyInfoSql } from './companyInfoSql';
 import { CompanySql } from '../companyLeads/CompanySql';
@@ -103,34 +103,48 @@ export async function addAllCompanyInfoToPostgresqlFromFile(): Promise<void> {
   const companyPaths = await Bun.file(companyInfoPathFile).json();
 
   for (const filePath of companyPaths) {
-    console.log('Project Path: ', filePath);
+    console.log('Processing file:', filePath);
 
     if (!await Bun.file(filePath).exists()) {
       console.log(`${filePath} does not exist`);
       continue;
     }
 
-    const s = spinner();
-    s.start('Adding Company Info to database...');
+    try {
+      await processFile(filePath, (value) => DB.insert(value));
 
-    const fileContent = await Bun.file(filePath).arrayBuffer();
-    const data: SingleCompanyType[] = JSON.parse(new TextDecoder().decode(fileContent));
-
-    let i = 0;
-    for (const company of data) {
-
-      await DB.insert(company);
-
-      i++;
-      s.message(`Adding Company Info to database... ${i}/${data.length}`);
+    } catch (error) {
+      console.error('Error reading file:', error);
+      return;
     }
-
-    console.log("\n");
-    s.stop('Company Info added/updated successfully! Total Company Info added: ' + data.length);
-    console.log("\n");
-    console.log("\n");
   }
 }
+
+
+export async function getAllEXTRACompanyInfo(): Promise<void> {
+  // companyIds that are not in the database
+  const extraCompanyIds = ['2267025'];
+
+  const outputFilePath: string = join(process.cwd(), 'data', `extra_comapany_info_${extraCompanyIds.length}.json`);
+
+  await appendToFile<string>(companyInfoPathFile, outputFilePath);
+
+
+  for (const companyId of extraCompanyIds) {
+
+    console.log(`Fetching company id with ID: ${JSON.stringify(companyId)}`);
+
+    const response = await fetchCompanyInfo(companyId);
+
+    // Check if the response is valid
+    if (response) {
+      await appendToFile<SingleCompanyType>(outputFilePath, response);
+      console.log(`Fetched ${response.companyInformation[0].Id} company info successfully`);
+    }
+  }
+  console.info('All curated projects fetched successfully');
+}
+
 
 
 /**
@@ -181,5 +195,5 @@ export async function getAllCompanyInfo(existingRecords?: number): Promise<void>
     offset += Math.abs(offset - totalRecords) < 100 ? offset - totalRecords : LIMIT;
   }
 
-  console.info('All curated projects fetched successfully');
+  console.info('All company info fetched successfully');
 }

@@ -11,7 +11,7 @@ import { ProjectSql } from './src/projectLeads/ProjectSql';
 import { CuratedProjectSql } from './src/curatedProject/CuratedProjectSql';
 import { addAllCuratedProjectLeadsToPostgresqlFromFile, countCuratedProjectsInFile, getAllCuratedProject } from './src/curatedProject/curatedProject';
 import { CompanyInfoSql } from './src/companyInfo/companyInfoSql';
-import { countCompanyInfosInFile, getAllCompanyInfo } from './src/companyInfo/companyInfo';
+import { addAllCompanyInfoToPostgresqlFromFile, countCompanyInfosInFile, getAllCompanyInfo, getAllEXTRACompanyInfo } from './src/companyInfo/companyInfo';
 
 const stop = () => {
   SQL.closeSQL();
@@ -68,6 +68,7 @@ async function companyInfoMenu() {
         s.start('Fetching Company Infos from API');
         try {
           await getAllCompanyInfo(count ? Number(length) : 0);
+          // await getAllEXTRACompanyInfo();
           s.stop('Company Infos added/updated successfully!');
         } catch (error) {
           s.stop(colors.red(`Error: ${error}`));
@@ -86,7 +87,7 @@ async function companyInfoMenu() {
       case 'fileToDB': {
         const s = spinner();
         s.start('Adding Company Info from JSON file to Database');
-        await addAllCuratedProjectLeadsToPostgresqlFromFile();
+        await addAllCompanyInfoToPostgresqlFromFile();
         s.stop('Company Info from file added to database');
         stop();
         break;
