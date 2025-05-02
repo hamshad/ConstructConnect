@@ -1,3 +1,8 @@
+import { parser } from 'stream-json';
+import { streamArray } from 'stream-json/streamers/StreamArray';
+import { chain } from 'stream-chain';
+
+
 export async function appendToFile<T>(filePath: string, data: T): Promise<void> {
   try {
     let existingData: T[] = [];
@@ -70,3 +75,28 @@ export async function incrementalAppendToFile<T>(filePath: string) {
   }
 }
 
+
+
+/**
+ * Processes a single JSON file by streaming its contents and inserting companies into the database.
+ * @param filePath - The path to the JSON file containing an array of company objects.
+ */
+export async function processFile(filePath: string, insertInDB: (val: any) => Promise<void>): Promise<void> {
+  const file = Bun.file(filePath);
+  const stream = file.stream();
+
+  const pipeline = chain([
+    stream,
+    parser(),
+    streamArray(),
+  ]);
+
+  let count = 0;
+
+  for await (const { value } of pipeline) {
+    await insertInDB(value);
+    count++;
+  }
+
+  console.log(`Inserted ${count} companies from ${filePath}`);
+}

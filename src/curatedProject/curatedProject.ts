@@ -1,5 +1,5 @@
 import { join } from 'path';
-import { appendToFile } from '../../data/FileOperations';
+import { appendToFile, processFile } from '../../data/FileOperations';
 import { spinner } from '@clack/prompts';
 import { CuratedProjectSql } from './CuratedProjectSql';
 import { ProjectSql } from '../projectLeads/ProjectSql';
@@ -88,46 +88,33 @@ export async function countCuratedProjectsInFile(): Promise<number> {
 }
 
 /**
-* Adds all company leads to PostgreSQL database from the local cached data JSON file.
-*
-* @param {string} filePath - The path to the JSON file containing company leads data
-*/
+ * Adds all company leads to the PostgreSQL database from JSON files listed in a project path file.
+ * @param projectPathFile - The path to a JSON file containing an array of file paths to process.
+ */
 export async function addAllCuratedProjectLeadsToPostgresqlFromFile(): Promise<void> {
 
-  if (!await Bun.file(projectPathFile).exists()) {
-    console.log(`${projectPathFile} does not exist`);
-    return;
-  }
-
-  const projectPaths = await Bun.file(projectPathFile).json();
-
-  for (const filePath of projectPaths) {
-    console.log('Project Path: ', filePath);
-
-    if (!await Bun.file(filePath).exists()) {
-      console.log(`${filePath} does not exist`);
-      continue;
+  try {
+    if (!await Bun.file(projectPathFile).exists()) {
+      console.log(`${projectPathFile} does not exist`);
+      return;
     }
 
-    const s = spinner();
-    s.start('Adding Project to database...');
+    const projectPaths: string[] = await Bun.file(projectPathFile).json();
 
-    const fileContent = await Bun.file(filePath).arrayBuffer();
-    const data: CuratedProjectType[] = JSON.parse(new TextDecoder().decode(fileContent));
-
-    let i = 0;
-    for (const company of data) {
-
-      await DB.insert(company);
-
-      i++;
-      s.message(`Adding Curated Projects to database... ${i}/${data.length}`);
+    for (const filePath of projectPaths) {
+      console.log('Processing file:', filePath);
+      if (!await Bun.file(filePath).exists()) {
+        console.log(`${filePath} does not exist`);
+        continue;
+      }
+      try {
+        await processFile(filePath, (value) => DB.insert(value));
+      } catch (error) {
+        console.error(`Failed to process ${filePath}:`, error);
+      }
     }
-
-    console.log("\n");
-    s.stop('Projects added/updated successfully! Total Curated Projects added: ' + data.length);
-    console.log("\n");
-    console.log("\n");
+  } catch (error) {
+    console.error('Error reading file:', error);
   }
 }
 
