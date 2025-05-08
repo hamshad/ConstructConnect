@@ -99,7 +99,10 @@ export async function countProjectLeadsInFile(filePaths: string[] = mainFilePath
 */
 export async function addAllProjectLeadsToPostgresqlFromFile(filePaths: string[] = mainFilePath): Promise<void> {
 
+  let i = 0;
   const s = spinner();
+
+
   s.start('Adding Project to database...');
 
   for (const filePath of filePaths) {
@@ -108,14 +111,14 @@ export async function addAllProjectLeadsToPostgresqlFromFile(filePaths: string[]
       return;
     }
 
-
     const fileContent = await Bun.file(filePath).text();
     const data: ProjectLead[] = JSON.parse(fileContent);
 
-    let i = 0;
-    for (const company of data) {
 
-      await ProjectDB.insertProjectLead(company);
+    for (const project of data) {
+      console.log('PROJECT:', JSON.stringify(data, null, 2));
+
+      await ProjectDB.insertProjectLead(project);
 
       i++;
       s.message(`Adding Projects to database... ${i}/${data.length}`);
