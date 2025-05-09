@@ -109,6 +109,28 @@ export async function addAllCompanyLeadsToPostgresqlFromFile(filePath: string = 
   }
 }
 
+export async function countCompanyLeadsInFile(filePath: string = join(process.cwd(), 'data', 'company_leads_2.4.2025.json')): Promise<number> {
+
+  let length = 0;
+  try {
+    if (!await Bun.file(filePath).exists()) {
+      console.log(`${filePath} does not exist`);
+      return 0;
+    }
+
+    const fileContent = await Bun.file(filePath).text();
+    const data: [any] = JSON.parse(fileContent);
+
+    length += data.length;
+
+    return Number(length);
+  } catch (error) {
+    console.error('Error reading file:', error);
+    return 0;
+  }
+}
+
+
 export async function getAllCompanyLeads(existingRecords?: number): Promise<void> {
   const limit: number = 150;
   let offset: number = Number(existingRecords) ?? 0;

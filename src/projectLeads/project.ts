@@ -83,7 +83,6 @@ export async function countProjectLeadsInFile(filePaths: string[] = mainFilePath
       const data: [any] = JSON.parse(fileContent);
 
       length += data.length;
-
     }
     return Number(length);
   } catch (error) {
